@@ -1,0 +1,19 @@
+username: tim
+base_packages:
+  - neovim
+  - tmux
+  - htop
+  - git
+  - git-lfs
+  - zsh
+  - curl
+  - wget
+  - unzip
+  - fzf
+  - ripgrep
+  - fd-find
+  - bat
+  - zoxide
+  - procs
+  - ranger
+  - ncdu

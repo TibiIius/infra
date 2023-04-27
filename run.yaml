@@ -1,0 +1,7 @@
+---
+- name: Run tasks for all hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Run essential tasks
+      ansible.builtin.import_tasks: tasks/essential.yaml
