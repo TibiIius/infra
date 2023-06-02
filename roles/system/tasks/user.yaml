@@ -27,6 +27,35 @@
     line: "{{ username }} ALL=(ALL) NOPASSWD: ALL"
     validate: "visudo -cf %s"
 
+- name: Create SSH directory for "{{ username }}"
+  ansible.builtin.file:
+    path: "/home/{{ username }}/.ssh/"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0700"
+    state: directory
+
+- name: Copy over SSH keys for "{{ username }}"
+  ansible.builtin.lineinfile:
+    line: "{{ item.key }}"
+    dest: "/home/{{ username }}/.ssh/authorized_keys"
+    state: present
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0600"
+  loop: "{{ ssh_keys }}"
+
+- name: Generate SSH keypair for "{{ username }}"
+  community.crypto.openssh_keypair:
+    path: "/home/{{ username }}/.ssh/id_rsa"
+    comment: "{{ username }}@{{ inventory_hostname }}"
+    type: rsa
+    size: 4096
+    state: present
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0600"
+
 - name: Setup dotfiles for "{{ username }}"
   become: true
   become_user: "{{ username }}"
