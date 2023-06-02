@@ -1,0 +1,7 @@
+---
+- name: Essential task set
+  ansible.builtin.include_tasks: essential.yaml
+- name: SSH task set
+  ansible.builtin.include_tasks: ssh.yaml
+- name: User task set
+  ansible.builtin.include_tasks: user.yaml

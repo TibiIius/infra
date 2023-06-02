@@ -1,0 +1,41 @@
+---
+- name: Ensure all neccessary groups are created first
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - sudo
+    - "{{ username }}"
+
+- name: Create user "{{ username }}"
+  ansible.builtin.user:
+    name: "{{ username }}"
+    shell: "{{ usershell }}"
+    createhome: true
+    password: "{{ userpass | password_hash('sha512') }}"
+    update_password: on_create
+    groups:
+      - sudo
+      - "{{ username }}"
+    append: true
+    state: present
+
+- name: Passwordless sudo for "{{ username }}"
+  ansible.builtin.lineinfile:
+    dest: /etc/sudoers
+    regexp: "^{{ username }}"
+    line: "{{ username }} ALL=(ALL) NOPASSWD: ALL"
+    validate: "visudo -cf %s"
+
+- name: Setup dotfiles for "{{ username }}"
+  become: true
+  become_user: "{{ username }}"
+  block:
+    - name: Install chezmoi
+      ansible.builtin.shell:
+        cmd: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin
+        creates: $HOME/.local/bin/chezmoi
+    - name: Install dotfiles
+      ansible.builtin.shell:
+        cmd: $HOME/.local/bin/chezmoi init --apply tibiiius
+        creates: $HOME/.local/share/chezmoi

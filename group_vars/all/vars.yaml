@@ -1,4 +1,5 @@
 username: tim
+usershell: /bin/zsh
 base_packages:
   - neovim
   - tmux
@@ -9,11 +10,5 @@ base_packages:
   - curl
   - wget
   - unzip
-  - fzf
-  - ripgrep
-  - fd-find
-  - bat
-  - zoxide
-  - procs
   - ranger
   - ncdu
