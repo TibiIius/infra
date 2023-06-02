@@ -10,7 +10,7 @@
 - name: Create user "{{ username }}"
   ansible.builtin.user:
     name: "{{ username }}"
-    shell: "{{ usershell }}"
+    shell: "{{ shell }}"
     createhome: true
     password: "{{ userpass | password_hash('sha512') }}"
     update_password: on_create
@@ -35,7 +35,7 @@
       ansible.builtin.shell:
         cmd: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin
         creates: $HOME/.local/bin/chezmoi
-    - name: Install dotfiles
+    - name: Install dotfiles from "{{ dotfiles_location }}"
       ansible.builtin.shell:
-        cmd: $HOME/.local/bin/chezmoi init --apply tibiiius
+        cmd: $HOME/.local/bin/chezmoi init --apply "{{ dotfiles_location }}"
         creates: $HOME/.local/share/chezmoi

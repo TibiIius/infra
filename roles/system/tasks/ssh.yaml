@@ -1,8 +1,28 @@
 ---
-- name: Disable SSH password auth
+# From https://github.com/notthebee/ansible_homeserver/blob/1a67056b0d0825bc00fa7c800d47ff04298df6df/roles/system/tasks/ssh.yml
+- name: Update SSH configuration
   ansible.builtin.lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: "^PasswordAuthentication"
-    line: "PasswordAuthentication no"
+    dest: "/etc/ssh/sshd_config"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
     state: present
+    validate: "sshd -T -f %s"
+    mode: "0644"
+  with_items:
+    - regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication no"
+    - regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+    - regexp: "^Port"
+      line: "Port {{ ssh_port }}"
+    - regexp: "^UseDNS"
+      line: "UseDNS no"
+    - regexp: "^PermitEmptyPasswords"
+      line: "PermitEmptyPasswords no"
+    - regexp: "^ChallengeResponseAuthentication"
+      line: "ChallengeResponseAuthentication no"
+    - regexp: "^GSSAPIAuthentication"
+      line: "GSSAPIAuthentication no"
+    - regexp: "^X11Forwarding"
+      line: "X11Forwarding yes"
   notify: Restart SSH daemon

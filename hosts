@@ -1,2 +1,2 @@
-[vm]
-vm-server-test ansible_host=192.168.122.3 ansible_user=tim ansible_connection=ssh 
+[mailserver]
+ubuntu-mailserver ansible_host=mail.timfb.dev ansible_user=tim ansible_connection=ssh

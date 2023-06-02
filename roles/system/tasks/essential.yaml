@@ -1,8 +1,18 @@
 - name: Update packages
-  ansible.builtin.dnf:
-    name: "*"
-    state: latest
-    update_only: true
+  block:
+    - name: Update with dnf
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_only: true
+      when: ansible_facts['os_family'] == "RedHat"
+    - name: Update with apt
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        only_upgrade: true
+        update_cache: true
+      when: ansible_facts['os_family'] == "Debian"
 
 - name: Install base
   ansible.builtin.package:

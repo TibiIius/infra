@@ -1,5 +1,3 @@
-username: tim
-usershell: /bin/zsh
 base_packages:
   - neovim
   - tmux
@@ -12,3 +10,5 @@ base_packages:
   - unzip
   - ranger
   - ncdu
+base_install_dir: "/opt"
+ssh_port: "22"
