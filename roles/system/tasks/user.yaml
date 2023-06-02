@@ -27,22 +27,14 @@
     line: "{{ username }} ALL=(ALL) NOPASSWD: ALL"
     validate: "visudo -cf %s"
 
-- name: Create SSH directory for "{{ username }}"
-  ansible.builtin.file:
-    path: "/home/{{ username }}/.ssh/"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0700"
-    state: directory
-
 - name: Copy over SSH keys for "{{ username }}"
-  ansible.builtin.lineinfile:
-    line: "{{ item.key }}"
-    dest: "/home/{{ username }}/.ssh/authorized_keys"
+  ansible.posix.authorized_key:
+    key: "{{ item.key }}"
     state: present
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: "0600"
+    user: "{{ username }}"
+    # exclusive does not work with loops
+    exclusive: false
+    manage_dir: true
   loop: "{{ ssh_keys }}"
 
 - name: Generate SSH keypair for "{{ username }}"
