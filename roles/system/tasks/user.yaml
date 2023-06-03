@@ -12,8 +12,8 @@
     name: "{{ username }}"
     shell: "{{ shell }}"
     createhome: true
-    password: "{{ userpass | password_hash('sha512') }}"
-    update_password: on_create
+    password: "{{ userpass }}"
+    update_password: always
     groups:
       - sudo
       - "{{ username }}"
