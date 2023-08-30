@@ -1,0 +1,30 @@
+---
+- name: Create reverse proxy Docker network
+  become: true
+  become_user: "{{ username }}"
+  community.docker.docker_network:
+    name: reverse_proxy
+    state: present
+
+- name: Ensure project dir exists
+  ansible.builtin.file:
+    path: "{{ reverse_proxy_project_dir }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0700"
+
+- name: Copy project files
+  ansible.builtin.template:
+    dest: "{{ reverse_proxy_project_dir }}/{{ item }}"
+    src: "templates/{{ item }}.j2"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0400"
+  loop:
+    - .env
+    - docker-compose.yaml
+
+- name: Bring up compose project
+  community.docker.docker_compose:
+    project_src: "{{ reverse_proxy_project_dir }}"
