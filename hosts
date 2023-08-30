@@ -1,2 +1,6 @@
-[mailserver]
-ubuntu-mailserver ansible_host=mail.timfb.dev ansible_user=tim ansible_connection=ssh
+mailserver:
+  hosts:
+    ubuntu-mailserver:
+      ansible_host: "mail.timfb.dev"
+      ansible_user: "tim"
+      ansible_connection: "ssh"
