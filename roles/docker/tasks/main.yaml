@@ -7,10 +7,24 @@
     owner: "{{ username }}"
     group: "{{ username }}"
 
-- name: Login to DockerHub
+- name: Run as user "{{ username }}"
   become: true
   become_user: "{{ username }}"
-  community.docker.docker_login:
-    registry_url: "https://index.docker.io/v2/"
-    username: tibilius1337
-    password: "{{ dockerhub_password }}"
+  block:
+    - name: Login to DockerHub
+      community.docker.docker_login:
+        registry_url: "https://index.docker.io/v2/"
+        username: tibilius1337
+        password: "{{ dockerhub_password }}"
+
+    - name: Setup watchtower
+      community.docker.docker_container:
+        name: "watchtower"
+        state: started
+        image: "docker.io/containrrr/watchtower:latest"
+        volumes:
+          - "/home/{{ username }}/.docker/config.json:/config.json:ro"
+          - "/var/run/docker.sock:/var/run/docker.sock"
+        env:
+          # Runs every day at 4am (2am UTC)
+          WATCHTOWER_SCHEDULE: "0 0 2 * * *"
