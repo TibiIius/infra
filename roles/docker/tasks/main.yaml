@@ -1,0 +1,16 @@
+---
+- name: Ensure directories are setup
+  ansible.builtin.file:
+    path: "{{ docker_compose_dir }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+
+- name: Login to DockerHub
+  become: true
+  become_user: "{{ username }}"
+  community.docker.docker_login:
+    registry_url: "https://index.docker.io/v2/"
+    username: tibilius1337
+    password: "{{ dockerhub_password }}"

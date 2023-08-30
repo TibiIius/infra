@@ -4,3 +4,6 @@
   become: true
   roles:
     - role: system
+    - role: geerlingguy.docker
+    - role: geerlingguy.pip
+    - role: docker

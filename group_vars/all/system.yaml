@@ -11,4 +11,5 @@ base_packages:
   - ranger
   - ncdu
 base_install_dir: "/opt"
+docker_compose_dir: "{{ base_install_dir }}/docker-compose-deploy"
 ssh_port: "22"
