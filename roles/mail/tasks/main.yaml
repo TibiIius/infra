@@ -1,0 +1,11 @@
+---
+- name: Ensure project and mail data directories exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0700"
+  loop:
+    - "{{ mail_project_dir }}"
+    - "{{ mail_data_dir }}"

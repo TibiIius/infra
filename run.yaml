@@ -10,3 +10,9 @@
     - role: geerlingguy.pip
     - role: docker
     - role: reverse_proxy
+
+- name: Run tasks for mailserver host(s)
+  hosts: mailserver
+  become: true
+  roles:
+    - role: mail

@@ -1,0 +1,2 @@
+mail_project_dir: "{{ docker_compose_dir }}/mailu"
+mail_data_dir: "/mailu"
