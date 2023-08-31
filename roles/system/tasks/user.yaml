@@ -17,10 +17,8 @@
     groups:
       - sudo
       - "{{ username }}"
-      - docker
     append: true
     state: present
-  notify: Reboot host
 
 - name: Passwordless sudo for "{{ username }}"
   ansible.builtin.lineinfile:

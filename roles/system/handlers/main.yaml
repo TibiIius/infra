@@ -3,5 +3,3 @@
   ansible.builtin.service:
     name: sshd
     state: restarted
-- name: Reboot host
-  ansible.builtin.reboot:

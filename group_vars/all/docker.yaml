@@ -2,3 +2,7 @@
 pip_install_packages:
   - docker
   - docker-compose
+
+# Ensures that given users are added to the docker group
+docker_users:
+  - "{{ username }}"
