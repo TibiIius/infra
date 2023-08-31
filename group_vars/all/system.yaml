@@ -1,15 +1,16 @@
-base_packages:
-  - neovim
-  - tmux
-  - htop
-  - git
-  - git-lfs
-  - zsh
-  - curl
-  - wget
-  - unzip
-  - ranger
-  - ncdu
+# grog.package (uses apt package names by default)
+package_list:
+  - name: neovim
+  - name: tmux
+  - name: htop
+  - name: git
+  - name: git-lfs
+  - name: zsh
+  - name: curl
+  - name: wget
+  - name: unzip
+  - name: ranger
+  - name: ncdu
 base_install_dir: "/opt"
 docker_compose_dir: "{{ base_install_dir }}/docker-compose-deploy"
 

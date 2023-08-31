@@ -15,6 +15,5 @@
       when: ansible_facts['os_family'] == "Debian"
 
 - name: Install base
-  ansible.builtin.package:
-    name: "{{ base_packages }}"
-    state: present
+  ansible.builtin.import_role:
+    name: grog.package

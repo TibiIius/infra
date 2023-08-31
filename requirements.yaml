@@ -5,3 +5,4 @@ roles:
   - name: geerlingguy.ntp
   - name: geerlingguy.security
   - name: hifis.unattended_upgrades
+  - name: grog.package
