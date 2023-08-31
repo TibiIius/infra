@@ -12,4 +12,10 @@ base_packages:
   - ncdu
 base_install_dir: "/opt"
 docker_compose_dir: "{{ base_install_dir }}/docker-compose-deploy"
-ssh_port: "22"
+
+# geerlingguy.security
+security_ssh_port: "22"
+security_autoupdate_enabled: false # We use hifis.unattended_upgrades instead
+
+# geerlingguy.ntp
+ntp_timezone: "Europe/Berlin"

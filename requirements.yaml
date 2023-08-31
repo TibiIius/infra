@@ -2,4 +2,6 @@
 roles:
   - name: geerlingguy.docker
   - name: geerlingguy.pip
+  - name: geerlingguy.ntp
+  - name: geerlingguy.security
   - name: hifis.unattended_upgrades
