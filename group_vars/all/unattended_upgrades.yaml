@@ -1,0 +1,3 @@
+unattended_automatic_reboot: true
+unattended_automatic_reboot_time: "06:00"
+unattended_update_days: '{"Mon";"Wed";"Fri"};'
