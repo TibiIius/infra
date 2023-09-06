@@ -1,1 +1,4 @@
 reverse_proxy_project_dir: "{{ docker_compose_dir }}/reverse-proxy"
+reverse_proxy_open_ports:
+  - { host: 80, container: 80 }
+  - { host: 443, container: 443 }

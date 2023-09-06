@@ -16,8 +16,9 @@ services:
       - "--certificatesresolvers.cloudflare.acme.email={{ cf_mail }}"
       - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "80:80"
-      - "443:443"
+{% for entry in reverse_proxy_open_ports%}
+      - "{{ entry.host }}:{{ entry.container }}"
+{% endfor %}
     volumes:
       - "letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
