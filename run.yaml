@@ -11,7 +11,6 @@
     - role: geerlingguy.ntp
     - role: geerlingguy.security
     - role: docker
-    - role: reverse_proxy
 
 - name: Run tasks for mailserver host(s)
   hosts: mailserver
