@@ -1,2 +1,8 @@
 mail_project_dir: "{{ docker_compose_dir }}/mailu"
-mail_data_dir: "/mailu"
+mail_domain: "timfb.dev"
+mail_hostname: "mail.{{ mail_domain }}"
+
+# Mailu
+mailu_sitename: "Tim's Mailu"
+mailu_data_dir: "/mailu"
+mailu_postmaster: "admin"

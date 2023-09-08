@@ -8,4 +8,19 @@
     mode: "0700"
   loop:
     - "{{ mail_project_dir }}"
-    - "{{ mail_data_dir }}"
+    - "{{ mailu_data_dir }}"
+
+- name: Copy project files
+  ansible.builtin.template:
+    dest: "{{ mail_project_dir }}/{{ item }}"
+    src: "templates/{{ item }}.j2"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0400"
+  loop:
+    - mailu.env
+    - docker-compose.yaml
+
+- name: Bring up compose project
+  community.docker.docker_compose:
+    project_src: "{{ mail_project_dir }}"
