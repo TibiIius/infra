@@ -11,6 +11,7 @@ package_list:
   - name: unzip
   - name: ranger
   - name: ncdu
+  - name: traceroute
 base_install_dir: "/opt"
 docker_compose_dir: "{{ base_install_dir }}/docker-compose-deploy"
 
