@@ -1,0 +1,32 @@
+---
+- name: Check if repokey dir exists
+  ansible.builtin.stat:
+    path: "/root/.config/borg/keys"
+  register: borg_repokey_dir
+
+- name: Copy repo key if not exists
+  ansible.builtin.copy:
+    dest: /tmp/borg_repokey
+    content: "{{ borg_repo_key }}"
+    mode: "0600"
+    group: root
+    owner: root
+  when: not borg_repokey_dir.stat.exists
+
+- name: Run borgbackup role
+  ansible.builtin.include_role:
+    name: borgbase.ansible_role_borgbackup
+
+# Import with `lineinfile` since borg saves SSH keys a bit weirdly, and Ansible just freaks out about that
+- name: Add repo SSH key to authorized_keys
+  ansible.builtin.lineinfile:
+    state: present
+    line: "{{ item }}"
+    path: /root/.ssh/known_hosts
+  loop: "{{ borgbackup_known_hosts_repo }}"
+
+- name: Import repokey if not exists
+  ansible.builtin.command: borg key import '{{ borg_repository }}' /tmp/borg_repokey
+  register: borg_key_import_return_code
+  changed_when: borg_key_import_return_code.rc == 0
+  when: not borg_repokey_dir.stat.exists

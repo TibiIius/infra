@@ -1,0 +1,10 @@
+borgmatic_timer: systemd
+borg_ssh_key_type: rsa
+borg_ssh_key_name: id_rsa
+borgmatic_hooks:
+  before_backup:
+    - echo "`date` - Starting backup."
+    - docker stop $(docker ps -q)
+  after_backup:
+    - docker start $(docker ps -a -q)
+    - echo "`date` - Finished backup."

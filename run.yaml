@@ -10,6 +10,7 @@
     - role: geerlingguy.pip
     - role: geerlingguy.ntp
     - role: geerlingguy.security
+    - role: borg
     - role: docker
 
 - name: Run tasks for mailserver host(s)

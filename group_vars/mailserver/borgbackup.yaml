@@ -1,0 +1,11 @@
+borg_retention_policy:
+  keep_daily: 3
+  keep_weekly: 4
+  keep_monthly: 12
+borgmatic_checks:
+  - disabled
+borgmatic_check_last: 3
+borg_source_directories:
+  - /mailu
+borg_exclude_patterns:
+  - "*.pyc"
