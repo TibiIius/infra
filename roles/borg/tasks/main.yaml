@@ -30,3 +30,16 @@
   register: borg_key_import_return_code
   changed_when: borg_key_import_return_code.rc == 0
   when: not borg_repokey_dir.stat.exists
+
+- name: Check if source dirs are empty/don't exist
+  ansible.builtin.find:
+    paths: "{{ borg_source_directories }}"
+    file_type: any
+    hidden: true
+  register: borg_dir_files
+
+- name: Restore backups when folders empty/don't exist
+  ansible.builtin.command: borgmatic extract --archive latest
+  register: borg_restore_cmd
+  changed_when: borg_restore_cmd.rc == 0
+  when: borg_dir_files.matched <= 0
