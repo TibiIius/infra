@@ -17,3 +17,12 @@
 - name: Install base
   ansible.builtin.import_role:
     name: grog.package
+
+- name: Install simplepush
+  ansible.builtin.get_url:
+    checksum: "sha256:e2970d22510ee2f7e6033100ef71e9f6531080a3df4bb6952172730ba866f94f"
+    dest: "/usr/local/bin/simplepush.sh"
+    url: "https://raw.githubusercontent.com/simplepush/send-encrypted/master/simplepush.sh"
+    mode: "0755"
+    owner: root
+    group: root

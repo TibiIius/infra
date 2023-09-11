@@ -43,3 +43,11 @@
   register: borg_restore_cmd
   changed_when: borg_restore_cmd.rc == 0
   when: borg_dir_files.matched <= 0
+
+- name: Install shell script to run on backup failure
+  ansible.builtin.template:
+    dest: "/usr/local/bin/borg_backup_failed.sh"
+    src: "templates/borg_backup_failed.sh.j2"
+    owner: root
+    group: root
+    mode: "0755"

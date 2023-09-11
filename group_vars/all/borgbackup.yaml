@@ -8,3 +8,6 @@ borgmatic_hooks:
   after_backup:
     - docker start $(docker ps -a -q)
     - echo "`date` - Finished backup."
+  on_error:
+    - /usr/local/bin/borg_backup_failed.sh
+    - echo "`date` - Backup failed!"
