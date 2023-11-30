@@ -2,3 +2,7 @@ reverse_proxy_project_dir: "{{ docker_compose_dir }}/reverse-proxy"
 reverse_proxy_open_ports:
   - { host: 80, container: 80 }
   - { host: 443, container: 443 }
+reverse_proxy_subnet_ipv4: "172.16.32.0/24"
+reverse_proxy_subnet_ipv6: "2001:3984:3989::/64"
+reverse_proxy_address_ipv4: "172.16.32.2"
+reverse_proxy_address_ipv6: "2001:3984:3989::2"

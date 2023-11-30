@@ -24,6 +24,11 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     env_file:
       - .env
+    networks:
+      reverse_proxy:
+        ipv4_address: {{ reverse_proxy_address_ipv4 }}
+        ipv6_address: {{ reverse_proxy_address_ipv6 }}
+
 
 volumes:
   letsencrypt:
