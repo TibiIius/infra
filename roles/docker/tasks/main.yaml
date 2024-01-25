@@ -28,3 +28,4 @@
         env:
           # Runs every day at 4am (2am UTC)
           WATCHTOWER_SCHEDULE: "0 0 2 * * *"
+          WATCHTOWER_CLEANUP: "true"
