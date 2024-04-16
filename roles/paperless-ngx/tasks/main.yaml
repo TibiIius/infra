@@ -1,0 +1,15 @@
+---
+- name: Copy project files
+  ansible.builtin.template:
+    dest: "{{ paperless_project_dir }}/{{ item }}"
+    src: "templates/{{ item }}.j2"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0400"
+  loop:
+    - paperless.env
+    - docker-compose.yaml
+
+- name: Bring up compose project
+  community.docker.docker_compose:
+    project_src: "{{ paperless_project_dir }}"

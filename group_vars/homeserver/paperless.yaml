@@ -1,0 +1,6 @@
+paperless_project_dir: "{{ docker_compose_dir }}/paperless"
+paperless_domain: "paperless.{{ base_domain }}"
+paperless_timezone: "{{ ntp_timezone }}"
+paperless_ocr_languages:
+  - "deu"
+  - "eng"
