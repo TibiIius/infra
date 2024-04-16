@@ -15,7 +15,7 @@
     group: "{{ username }}"
     mode: "0400"
   loop:
-    - paperless.env
+    - .env
     - docker-compose.yaml
 
 - name: Bring up compose project
