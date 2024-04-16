@@ -1,0 +1,2 @@
+atuin_project_dir: "{{ docker_compose_dir }}/atuin"
+atuin_db_user: "atuin"
