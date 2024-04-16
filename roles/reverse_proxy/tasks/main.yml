@@ -3,7 +3,7 @@
   become: true
   become_user: "{{ username }}"
   community.docker.docker_network:
-    name: reverse_proxy
+    name: "{{ reverse_proxy_network_name }}"
     state: present
     enable_ipv6: true
     ipam_config:

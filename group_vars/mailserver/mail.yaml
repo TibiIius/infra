@@ -1,5 +1,5 @@
 mail_project_dir: "{{ docker_compose_dir }}/mailu"
-mail_domain: "timfb.dev"
+mail_domain: "{{ base_domain }}"
 mail_hostname: "mail.{{ mail_domain }}"
 
 # Mailu

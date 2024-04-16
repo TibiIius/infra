@@ -34,5 +34,5 @@ volumes:
   letsencrypt:
 
 networks:
-  reverse_proxy:
+  {{ reverse_proxy_network_name }}:
     external: true
