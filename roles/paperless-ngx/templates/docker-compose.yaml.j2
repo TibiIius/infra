@@ -6,7 +6,7 @@ services:
       - redisdata:/data
 
   db:
-    image: docker.io/library/postgres:15
+    image: docker.io/library/postgres:15-alpine
     restart: unless-stopped
     volumes:
       - pgdata:/var/lib/postgresql/data
