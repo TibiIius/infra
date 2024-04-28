@@ -1,8 +1,10 @@
-# Needed as we need to use compose v1 unfortunately, `community.docker.docker_compose` has not been updated to support v2 yet
 pip_install_packages:
   - docker
-  - docker-compose
 
 # Ensures that given users are added to the docker group
 docker_users:
   - "{{ username }}"
+
+# Install Compose as a plugin
+docker_install_compose_plugin: true
+docker_install_compose: false
