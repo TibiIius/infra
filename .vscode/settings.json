@@ -1,5 +1,4 @@
 {
-  "ansible.python.interpreterPath": ".venv/bin/python",
   "files.associations": {
     "**/*.{yml,yaml}": "ansible",
     "**/templates/*.{yml,yaml}.j2": "ansible-jinja",
