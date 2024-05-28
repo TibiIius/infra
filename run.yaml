@@ -12,9 +12,3 @@
     - role: geerlingguy.security
     - role: borg
     - role: docker
-
-- name: Run tasks for mailserver host(s)
-  hosts: mailserver
-  become: true
-  roles:
-    - role: mail

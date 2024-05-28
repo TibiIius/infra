@@ -1,10 +1,14 @@
 pip_install_packages:
   - docker
 
+# geerlingguy.docker
 # Ensures that given users are added to the docker group
 docker_users:
   - "{{ username }}"
-
 # Install Compose as a plugin
 docker_install_compose_plugin: true
 docker_install_compose: false
+
+# tibiiius.simple_compose
+simple_compose_username: "{{ username }}"
+simple_compose_projects: []

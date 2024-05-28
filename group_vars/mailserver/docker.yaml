@@ -1,0 +1,7 @@
+# tibiiius.simple_compose
+simple_compose_projects:
+  - name: mail
+    directory: "{{ mail_project_dir }}"
+    files:
+      - "docker-compose.yaml"
+      - "mailu.env"

@@ -1,0 +1,12 @@
+# tibiiius.simple_compose
+simple_compose_projects:
+  - name: atuin
+    directory: "{{ atuin_project_dir }}"
+    files:
+      - "docker-compose.yaml"
+      - ".env"
+  - name: paperless-ngx
+    directory: "{{ paperless_project_dir }}"
+    files:
+      - "docker-compose.yaml"
+      - ".env"
