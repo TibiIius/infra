@@ -16,7 +16,10 @@
         "ms-python.python",
         "redhat.vscode-yaml",
         "redhat.ansible",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "samuelcolvin.jinjahtml",
+        "christian-kohler.path-intellisense",
+        "redhat.vscode-commons"
       ],
       "settings": {
         "ansible.python.interpreterPath": "/workspaces/infra/.venv/bin/python",
