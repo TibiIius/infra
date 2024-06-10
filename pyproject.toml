@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-ansible = "^9.6.0"
+ansible = "^10.0.1"
 
 [tool.poetry.group.dev.dependencies]
 ansible-lint = { version = "^24.5.0", markers = "platform_system != 'Windows'" }
