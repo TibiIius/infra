@@ -11,7 +11,7 @@ roles:
   - name: hifis.unattended_upgrades
     version: v3.2.0
   - name: grog.package
-    version: v1.3.1
+    version: v1.4.0
   - name: borgbase.ansible_role_borgbackup
     version: v1.0.1
   - name: tibiiius.simple_compose
