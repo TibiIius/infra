@@ -1,7 +1,7 @@
 ---
 roles:
   - name: geerlingguy.docker
-    version: 6.2.0
+    version: 7.4.1
   - name: geerlingguy.pip
     version: 2.2.0
   - name: geerlingguy.ntp
