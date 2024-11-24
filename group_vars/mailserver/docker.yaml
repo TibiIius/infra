@@ -5,3 +5,8 @@ simple_compose_projects:
     files:
       - "docker-compose.yaml"
       - "mailu.env"
+  - name: wireguard
+    directory: "{{ wg_project_dir }}"
+    files:
+      - "docker-compose.yaml"
+  
