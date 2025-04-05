@@ -3,5 +3,7 @@
     "**/*.{yml,yaml}": "ansible",
     "**/templates/*.{yml,yaml}.j2": "ansible-jinja",
     "**/templates/*.j2": "ansible-jinja"
-  }
+  },
+  "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
 }
