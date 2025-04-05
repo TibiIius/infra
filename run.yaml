@@ -10,5 +10,4 @@
     - role: geerlingguy.pip
     - role: geerlingguy.ntp
     - role: geerlingguy.security
-    - role: borg
     - role: docker
