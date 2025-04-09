@@ -7,7 +7,7 @@ roles:
   - name: geerlingguy.ntp
     version: 2.7.0
   - name: geerlingguy.security
-    version: 2.4.0
+    version: 3.0.0
   - name: hifis.unattended_upgrades
     version: v3.2.0
   - name: grog.package
