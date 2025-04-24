@@ -2,4 +2,8 @@
 poetry = { version = "2", pyproject = "pyproject.toml" }
 python = "3.13.3"
 "ubi:doy/rbw" = "latest"
+sops = "latest"
 rust = "latest"
+
+[env]
+SOPS_PGP_FP="711B5B3EEB2661CEF4CAA41F4B3B63F9A1CB361C"
