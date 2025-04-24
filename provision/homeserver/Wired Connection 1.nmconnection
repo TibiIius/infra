@@ -1,0 +1,16 @@
+{
+	"data": "ENC[AES256_GCM,data:YGiYQaa1bg9NHeyaQwGJ10B9hq4rFjg60LNZPCmXcMxZTVL4RSPr3f9XvnHRCRKY+oEfZqosowUVkT93bdnE+PUSqKFgDVYdMITCmQgH3GB+vev06KbjJskcWJt96ayDuXIy/+6B0nzHqCAmPapVefOF+ybVUorRDZ1+FEBikD84tKTnueUEEbOjC7x0pGLzP164lQk3JLrRY5pOEg75B/U3H5w6DZCBn7E22R+yOwKDzvtN8SUSAGLa5/mNEPz0C4b3f+Ub3/NupWEaGpWtS6ooMhctnGTI+NNDDLZ8mduHrZLHDQzOPWitOydmT+VHTD+5H7A5xcZelXyvCi/j7W6peK0aSwvvWxbmIDNPj8PoWUcRBQJflfd7+q7gQhUbpzWB0JpGsz6qIAc9p1V75OFQ+RzfhaCbCAztHkhC+1XApEXsJVAIDtuQP4TnU6Z0s71TBUCvr3mv/+ZmoFDkaX+YHUjGYhYtayZTU1wzf9v+guykpXJte/457DFYXGjXa9NiFRWQwsaozHZurb5QLMOO8whSM4qDm1iCBwc8KD9ZHLKdsozboH+yVA==,iv:HFIS2fIcu+/if+Ks7oHrNoHhQva71jPpcRH2On9kEGo=,tag:nB0GE//7iSeUFvFre8bOTA==,type:str]",
+	"sops": {
+		"lastmodified": "2025-04-24T19:29:20Z",
+		"mac": "ENC[AES256_GCM,data:pzRYy8J5mkawlhaCfBPkbqLMYiTYhPpLDpK1Wn0noWiccVSTdZgnA56/ow5yomGMWa3nNPORcMgddJKvqi5jFMRMgp7K1asfZjxaHwJLYhBI6514j+DmGmQsefRkt/EJ6NutKJdMMFq395kRbLBXvjEwQOA3XwqNPulmBnhxTsc=,iv:dxOTAnl0y7I/c5IXddn1I1qbOdGKHOJ8PwCjLoLA9U4=,tag:xlILBZKnz9vxOVsc0Co2iw==,type:str]",
+		"pgp": [
+			{
+				"created_at": "2025-04-24T19:29:20Z",
+				"enc": "-----BEGIN PGP MESSAGE-----\n\nhQIMAz4Zr03XpfPiAQ/9F2g4O2B9vRiNlmbvc6ftSAF3u6W58PgsfIDe1Dhf2GYn\n3to4ngw0HB2+pBweH4wFcxeO9ipHBVADePflnpAsPmHONNCfnZmoBIDtRGZ09vb/\nAD/O503yLPu5IaWlAZNHCcqVceWBIysskjNhgTOfr6NevUnawf5yjmkrej9psdA2\nJ3T7TTitnEXFmMRv/QnOBifNVUWeC4hZo0fYn+JGSr8tx9XrYm8XLgsgvXovBfJq\nDi0SNP+6psfW28gXg90iPa7kSXiPbcaUfaj7MCRK3C6+Wu92JRZ9evHHVjhDRd6p\nf+/aF+MsUhvXClItbO0mg2lqs+Ubr/RmeR6DAbsm8gNegsk9ohXw7GcpSlFwecsM\nJHzdO9gGlzqc1OiAIO8sT8F0HJH0cwLHmKOjPUZMVtDlYCSuuzRrKFWX0B/I3emo\nOAxm8yQYfxXzx6pj+U2yhNM9Hkc/dccpJZlJGlL4LNtrKyH6QtrkRjC2n1EkaK9L\nQ6AUoeAswJS82/t4ZDf1i6hl9fDVzAE40b2MNLS0GfqzcgNzUS1dO2YjyPmQGxf8\nuWj/O88aVmadsCf7Gw09Tsylqqry88JXeEFJnGu9b2G6/R8NpreSscIGJuvqXJcq\njJTngMRaokasbl6AMg8FEp5OBzsQpzTWawC4v1kcCBoLCX4bZ5Bb8wfb+rQn5vDU\nZgEJAhDaNg8fMs1hZiQqRCL1Q/w+Ypaig9WUCAmO+uI1EZdbn5sx3QAvG8jZXIAn\nGiQcVKJvOKvgp/U1LJG8Y+uK4E0sBNOdBXbRSJmCy8TtImCUOXI95jyWqNREI4Yj\naIUHcgYo6g==\n=pqla\n-----END PGP MESSAGE-----",
+				"fp": "711B5B3EEB2661CEF4CAA41F4B3B63F9A1CB361C"
+			}
+		],
+		"unencrypted_suffix": "_unencrypted",
+		"version": "3.10.2"
+	}
+}
