@@ -1,11 +1,13 @@
-FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
+FROM mcr.microsoft.com/devcontainers/base:noble
 
-ADD https://github.com/doy/rbw/releases/download/1.10.1/rbw_1.10.1_linux_amd64.tar.gz /tmp/rbw.tar.gz
+# Activate Mise in ZSH and Bash
+RUN printf 'eval "$(mise activate zsh)"\n' >> /etc/zsh/zshrc && \
+  printf 'eval "$(mise activate bash)"\n' >> /etc/bash.bashrc
 
-RUN tar -xvf /tmp/rbw.tar.gz -C /usr/local/bin/ && \
-  chmod +x /usr/local/bin/rbw && \
-  chmod +x /usr/local/bin/rbw-agent && \
-  rm /tmp/rbw.tar.gz
+# Install deps
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  libffi-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 USER vscode
 

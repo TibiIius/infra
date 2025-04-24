@@ -1,15 +1,14 @@
 {
-  "name": "Python 3",
+  "name": "Infra Devcontainer",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "features": {
-    "ghcr.io/devcontainers-contrib/features/poetry:2": {
-      "version": "1.8.4"
-    },
+    "ghcr.io/devcontainers-extra/features/mise:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
-  "postCreateCommand": "poetry install",
+  "postCreateCommand": "mise trust && mise install",
+  "postStartCommand": "mise up",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -30,7 +29,7 @@
   "containerEnv": {
     "ANSIBLE_CONFIG": "/workspaces/infra/ansible.cfg"
   },
-	"mounts": [
-		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
-	]
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+  ]
 }
