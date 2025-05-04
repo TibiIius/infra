@@ -1,6 +1,10 @@
-mailserver:
+all:
   hosts:
     ubuntu-mailserver:
       ansible_host: "mail.timfb.dev"
       ansible_user: "tim"
       ansible_connection: "ssh"
+  children:
+    mailserver:
+      hosts:
+        ubuntu-mailserver:
