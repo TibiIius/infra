@@ -1,6 +1,6 @@
 [tools]
 poetry = { version = "2", pyproject = "pyproject.toml" }
-python = "3.13.5"
+python = "3.13.7"
 "cargo:rbw" = "latest"
 sops = "latest"
 rust = "latest"
