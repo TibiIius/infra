@@ -13,5 +13,5 @@ roles:
   - name: grog.package
     version: v1.4.1
   - name: borgbase.ansible_role_borgbackup
-    version: v1.1.2
+    version: v1.1.3
   - name: tibiiius.simple_compose
