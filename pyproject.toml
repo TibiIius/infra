@@ -8,7 +8,7 @@ readme = "README.md"
 dependencies = ["ansible>=12.0.0,<13"]
 
 [dependency-groups]
-dev = ["ansible-lint>=25.4.0,<26 ; platform_system != 'Windows'"]
+dev = ["ansible-lint>=26.1,<27; platform_system != 'Windows'"]
 
 [tool.uv]
 package = false
