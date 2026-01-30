@@ -5,7 +5,7 @@ description = "Ansible roles to setup my infrastructure both on-prem and in clou
 authors = [{ name = "TimFB", email = "oss@timfb.dev" }]
 requires-python = "~=3.12.0"
 readme = "README.md"
-dependencies = ["ansible>=12.0.0,<13"]
+dependencies = ["ansible>=13.3,<14"]
 
 [dependency-groups]
 dev = ["ansible-lint>=25.4.0,<26 ; platform_system != 'Windows'"]
