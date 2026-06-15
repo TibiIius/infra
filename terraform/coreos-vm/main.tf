@@ -30,7 +30,7 @@ variable "base_hostname" {
 locals {
   vm_names = [
     for i in range(var.vm_count) :
-    i == 0 ? var.base_hostname : "${var.base_hostname}-wn${i}"
+    "${var.base_hostname}-wn${i + 1}"
   ]
 }
 
