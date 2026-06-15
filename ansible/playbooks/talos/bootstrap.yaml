@@ -3,10 +3,25 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    tf_dir: ../terraform/hetzner
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    control_plane_count: 1
+    worker_count: 0
   tasks:
+    - name: Provision Hetzner infrastructure
+      community.general.terraform:
+        project_path: "{{ tf_dir }}"
+        state: present
+        variables:
+          hcloud_token: "{{ hcloud_token }}"
+          control_plane_count: "{{ control_plane_count }}"
+          worker_count: "{{ worker_count }}"
+      register: tf_output
+
     - name: Wait for Talos API to be ready
       ansible.builtin.command:
-        cmd: "talosctl --nodes {{ talos_endpoint | default('https://127.0.0.1:6443') }} health"
+        cmd: "talosctl --nodes {{ tf_output.outputs.talos_endpoint.value }} health"
       register: talos_health
       until: talos_health.rc == 0
       retries: 30
@@ -16,7 +31,7 @@
 
     - name: Apply Talos control plane configuration
       ansible.builtin.command:
-        cmd: "talosctl --nodes {{ talos_endpoint | default('https://127.0.0.1:6443') }} apply-config --file /etc/talos/machine-config.yaml"
+        cmd: "talosctl --nodes {{ tf_output.outputs.talos_endpoint.value }} apply-config --file /etc/talos/machine-config.yaml"
       changed_when: true
       failed_when: false
 
@@ -32,4 +47,4 @@
 
     - name: Display cluster status
       ansible.builtin.debug:
-        msg: "Talos cluster is ready at {{ talos_endpoint | default('https://127.0.0.1:6443') }}"
+        msg: "Talos cluster is ready at {{ tf_output.outputs.talos_endpoint.value }}"
