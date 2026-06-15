@@ -40,7 +40,6 @@ def parse_inventory(state):
         },
         "homeserver_cluster": {"hosts": []},
         "k8s_home": {"hosts": []},
-        "mutable_os": {"hosts": []},
         "_meta": {
             "hostvars": {}
         }
@@ -60,7 +59,6 @@ def parse_inventory(state):
     for name, ip in zip(vm_names, vm_ips):
         inventory["homeserver_cluster"]["hosts"].append(name)
         inventory["k8s_home"]["hosts"].append(name)
-        inventory["mutable_os"]["hosts"].append(name)
         inventory["_meta"]["hostvars"][name] = {
             "ansible_host": ip,
             "ansible_user": "ansible",
