@@ -1,11 +1,9 @@
 ---
-# Single entry point: run this to bootstrap or reconfigure everything.
-# Uses import_playbook so each playbook runs sequentially.
+# Idempotent configuration: run this to ensure all servers are in correct state.
+# No Terraform, no ISO generation, no pauses.
 
-- import_playbook: coreos/bootstrap.yaml
+- import_playbook: coreos/configure.yaml
 
 - import_playbook: coreos/k3s_deploy.yaml
-
-- import_playbook: talos/bootstrap.yaml
 
 - import_playbook: truenas/setup_host.yaml

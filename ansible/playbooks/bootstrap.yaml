@@ -1,0 +1,8 @@
+---
+# Top-level bootstrap: provisions infrastructure, then applies configuration.
+
+- import_playbook: coreos/bootstrap.yaml
+
+- import_playbook: talos/bootstrap.yaml
+
+- import_playbook: run.yaml
