@@ -1,0 +1,12 @@
+---
+- name: Bootstrap CoreOS VM
+  hosts: homeserver_cluster
+  become: true
+  vars:
+    ansible_user: ansible
+  roles:
+    - setup_user
+    - coreos_tuning
+
+- name: Import k3s cluster playbook
+  ansible.builtin.import_playbook: k3s.orchestration.site

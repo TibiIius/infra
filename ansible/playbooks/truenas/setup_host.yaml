@@ -1,0 +1,29 @@
+---
+- name: Setup TrueNAS Host
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Verify TrueNAS is reachable
+      ansible.builtin.uri:
+        url: "{{ truenas_api_url | default('http://127.0.0.1') }}/api/v2.0/info/version"
+        method: GET
+        status_code: 200
+      register: truenas_version
+      changed_when: false
+      failed_when: false
+
+    - name: Display TrueNAS version
+      ansible.builtin.debug:
+        msg: "TrueNAS version: {{ truenas_version.json | default('unknown') }}"
+
+    - name: Generate ignition config for CoreOS VM
+      ansible.builtin.command:
+        cmd: "terraform -chdir={{ terraform_dir | default('../terraform/truenas') }} output -json ignition_config_json"
+      register: ignition_output
+      changed_when: false
+      failed_when: false
+
+    - name: Display ignition config status
+      ansible.builtin.debug:
+        msg: "Ignition config available: {{ ignition_output.rc == 0 }}"
