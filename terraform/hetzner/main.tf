@@ -15,7 +15,7 @@ resource "hcloud_server" "talos_node" {
   count = var.node_count
 
   name        = "${var.cluster_name}-wn${count.index + 1}"
-  image       = "ubuntu-22.04"
+  image       = "ubuntu-26.04"
   server_type = var.server_type
   location    = var.location
 
