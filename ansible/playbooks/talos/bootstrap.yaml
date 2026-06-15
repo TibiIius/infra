@@ -6,8 +6,7 @@
   vars:
     tf_dir: ../terraform/hetzner
     hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
-    control_plane_count: 1
-    worker_count: 0
+    node_count: 1
   tasks:
     - name: Provision Hetzner infrastructure
       community.general.terraform:
@@ -15,8 +14,7 @@
         state: present
         variables:
           hcloud_token: "{{ hcloud_token }}"
-          control_plane_count: "{{ control_plane_count }}"
-          worker_count: "{{ worker_count }}"
+          node_count: "{{ node_count }}"
       register: tf_output
 
     - name: Wait for Talos API to be ready

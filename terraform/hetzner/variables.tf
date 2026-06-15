@@ -7,19 +7,13 @@ variable "hcloud_token" {
 variable "cluster_name" {
   type        = string
   default     = "talos-vps"
-  description = "Base cluster name (workers append -wn1, -wn2, etc.)"
+  description = "Base cluster name (nodes append -wn1, -wn2, etc.)"
 }
 
-variable "control_plane_count" {
+variable "node_count" {
   type        = number
   default     = 1
-  description = "Number of control plane nodes"
-}
-
-variable "worker_count" {
-  type        = number
-  default     = 0
-  description = "Number of worker nodes"
+  description = "Number of Talos nodes"
 }
 
 variable "server_type" {
