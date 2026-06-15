@@ -1,0 +1,21 @@
+---
+- name: Deploy k3s cluster
+  hosts: homeserver_cluster
+  become: true
+  vars:
+    ansible_user: ansible
+  tasks:
+    - name: Install k3s server
+      ansible.builtin.shell:
+        cmd: "curl -sfL https://get.k3s.io | sh -s server --cluster-init"
+        creates: /usr/local/bin/k3s
+      changed_when: true
+
+    - name: Wait for k3s to be ready
+      ansible.builtin.command:
+        cmd: "k3s kubectl get nodes"
+      register: k3s_ready
+      until: k3s_ready.rc == 0
+      retries: 30
+      delay: 10
+      changed_when: false

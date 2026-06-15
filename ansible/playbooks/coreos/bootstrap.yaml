@@ -8,5 +8,5 @@
     - setup_user
     - coreos_tuning
 
-- name: Import k3s cluster playbook
-  ansible.builtin.import_playbook: k3s.orchestration.site
+- name: Deploy k3s cluster
+  ansible.builtin.import_playbook: k3s_deploy.yaml
