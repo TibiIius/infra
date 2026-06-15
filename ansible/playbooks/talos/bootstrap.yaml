@@ -1,0 +1,35 @@
+---
+- name: Bootstrap Talos VPS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Wait for Talos API to be ready
+      ansible.builtin.command:
+        cmd: "talosctl --nodes {{ talos_endpoint | default('https://127.0.0.1:6443') }} health"
+      register: talos_health
+      until: talos_health.rc == 0
+      retries: 30
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Apply Talos control plane configuration
+      ansible.builtin.command:
+        cmd: "talosctl --nodes {{ talos_endpoint | default('https://127.0.0.1:6443') }} apply-config --file /etc/talos/machine-config.yaml"
+      changed_when: true
+      failed_when: false
+
+    - name: Wait for Kubernetes API to be ready
+      ansible.builtin.command:
+        cmd: "kubectl --kubeconfig /etc/talos/kubeconfig get nodes"
+      register: k8s_ready
+      until: k8s_ready.rc == 0
+      retries: 60
+      delay: 10
+      changed_when: false
+      failed_when: false
+
+    - name: Display cluster status
+      ansible.builtin.debug:
+        msg: "Talos cluster is ready at {{ talos_endpoint | default('https://127.0.0.1:6443') }}"

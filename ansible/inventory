@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""
+Dynamic inventory script for Talos VPS and CoreOS VM.
+Reads Terraform outputs to populate Ansible inventory.
+"""
+
+import json
+import subprocess
+import sys
+import os
+
+def run_terraform_output(terraform_dir, output_name):
+    """Run terraform output command and return the value."""
+    try:
+        result = subprocess.run(
+            ["terraform", "-chdir=" + terraform_dir, "output", "-json", output_name],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        if result.returncode == 0:
+            output_data = json.loads(result.stdout)
+            return output_data["value"]
+        return None
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, KeyError):
+        return None
+
+def get_inventory():
+    """Generate dynamic inventory from Terraform outputs."""
+    inventory = {
+        "_meta": {
+            "hostvars": {}
+        },
+        "all": {
+            "children": ["ungrouped", "k8s_vps", "k8s_home", "mutable_os"]
+        },
+        "k8s_vps": {
+            "hosts": []
+        },
+        "k8s_home": {
+            "hosts": []
+        },
+        "mutable_os": {
+            "hosts": []
+        }
+    }
+
+    # Get Talos VPS details
+    talos_ip = run_terraform_output("terraform/hetzner", "server_ipv4")
+    talos_private_ip = run_terraform_output("terraform/hetzner", "server_private_ipv4")
+    talos_endpoint = run_terraform_output("terraform/hetzner", "talos_endpoint")
+
+    if talos_ip:
+        inventory["k8s_vps"]["hosts"].append("talos-vps")
+        inventory["_meta"]["hostvars"]["talos-vps"] = {
+            "ansible_host": talos_ip,
+            "ansible_connection": "local",  # Talos managed via talosctl, not SSH
+            "talos_endpoint": talos_endpoint or f"https://{talos_private_ip or talos_ip}:6443",
+            "talos_private_ip": talos_private_ip
+        }
+
+    # Get CoreOS VM details (if Terraform state exists)
+    coreos_ip = run_terraform_output("terraform/truenas", "vm_ip")
+
+    if coreos_ip:
+        inventory["k8s_home"]["hosts"].append("coreos-vm")
+        inventory["mutable_os"]["hosts"].append("coreos-vm")
+        inventory["_meta"]["hostvars"]["coreos-vm"] = {
+            "ansible_host": coreos_ip,
+            "ansible_user": "ansible",
+            "ansible_connection": "ssh"
+        }
+    else:
+        # Fallback to static CoreOS VM config
+        inventory["k8s_home"]["hosts"].append("coreos-vm")
+        inventory["mutable_os"]["hosts"].append("coreos-vm")
+        inventory["_meta"]["hostvars"]["coreos-vm"] = {
+            "ansible_host": "10.0.0.100",  # Default CoreOS VM IP
+            "ansible_user": "ansible",
+            "ansible_connection": "ssh"
+        }
+
+    return inventory
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == "--list":
+        print(json.dumps(get_inventory(), indent=2))
+    elif len(sys.argv) == 2 and sys.argv[1] == "--host":
+        print(json.dumps({}, indent=2))
+    else:
+        print(json.dumps(get_inventory(), indent=2))
