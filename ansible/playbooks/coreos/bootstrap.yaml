@@ -67,7 +67,9 @@
         name: "{{ item }}"
         ansible_connection: ssh
         ansible_user: ansible
-        groups: coreos_vms
+        groups:
+          - coreos_vms
+          - homeserver_cluster
       loop: "{{ vm_ips }}"
 
 - name: Bootstrap CoreOS VM - Setup and Tune
@@ -86,17 +88,3 @@
     - name: Apply CoreOS tuning
       ansible.builtin.include_role:
         name: coreos_tuning
-
-- name: Bootstrap CoreOS VM - Deploy k3s
-  hosts: coreos_vms
-  become: true
-  gather_facts: false
-  vars:
-    ansible_user: ansible
-  collections:
-    - k3s.orchestration
-  roles:
-    - role: k3s_server
-      vars:
-        k3s_install_type: server
-        k3s_server_init: true
