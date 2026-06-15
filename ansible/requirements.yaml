@@ -6,3 +6,7 @@ roles:
     version: 3.0.0
   - name: grog.package
     version: v1.4.1
+collections:
+  - name: https://github.com/k3s-io/k3s-ansible.git
+    type: git
+    version: "1.2.1"
