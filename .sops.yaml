@@ -1,0 +1,7 @@
+creation_rules:
+  - path_regex: .*\.bu$
+    pgp: >-
+      711B5B3EEB2661CEF4CAA41F4B3B63F9A1CB361C
+  - path_regex: .*\.nmconnection$
+    pgp: >-
+      711B5B3EEB2661CEF4CAA41F4B3B63F9A1CB361C
