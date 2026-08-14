@@ -1,5 +1,0 @@
-paperless_domain: "paperless.{{ base_domain }}"
-paperless_timezone: "{{ ntp_timezone }}"
-paperless_ocr_languages:
-  - "deu"
-  - "eng"

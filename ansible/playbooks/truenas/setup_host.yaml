@@ -16,14 +16,3 @@
     - name: Display TrueNAS version
       ansible.builtin.debug:
         msg: "TrueNAS version: {{ truenas_version.json | default('unknown') }}"
-
-    - name: Generate ignition config for CoreOS VM
-      ansible.builtin.command:
-        cmd: "terraform -chdir={{ terraform_dir | default('../terraform/truenas') }} output -json ignition_config_json"
-      register: ignition_output
-      changed_when: false
-      failed_when: false
-
-    - name: Display ignition config status
-      ansible.builtin.debug:
-        msg: "Ignition config available: {{ ignition_output.rc == 0 }}"

@@ -2,51 +2,37 @@
 
 ## Repository Purpose
 
-Infrastructure-as-code for managing on-premise (TrueNAS + CoreOS VMs) and cloud
-(Hetzner Cloud + Talos) infrastructure.
+Infrastructure-as-code for managing on-premise (TrueNAS + Talos VMs) and cloud (Hetzner VPS + Talos) infrastructure. Single OS (Talos), single K8s, single management tool (`talosctl`).
 
 ## Key Conventions
 
 ### Naming
-
-- All nodes use `-wn1`, `-wn2`, etc. (1-indexed), even if there's only one node
-
-#### Example
-
-- CoreOS VMs: `coreos-vm-wn1`, `coreos-vm-wn2`
-- Talos nodes: `talos-vps-wn1`, `talos-vps-wn2`
+- All nodes use `-wn1`, `-wn2`, etc. (1-indexed). Never use `cp` suffix.
+- Talos nodes: `talos-vps-wn1`, `talos-vps-wn2` (Hetzner)
+- Talos VMs: `talos-home-wn1`, `talos-home-wn2` (TrueNAS)
 
 ### Playbooks
-
 - `bootstrap.yaml` — Full provisioning + configuration (run once)
 - `run.yaml` — Idempotent configuration only (run anytime)
 - Never mix provisioning and configuration in the same play
 
 ### Terraform
-
-- CoreOS: `terraform/coreos-vm/` — ct provider for ignition configs
 - Hetzner: `terraform/hetzner/` — hcloud provider for Talos nodes
+- Always use `node_count` (not `control_plane_count`/`worker_count`)
 
 ### Inventory
+- Static: `ansible/inventory` — localhost only
+- Talos nodes are NOT in Ansible inventory — managed via `talosctl`, not SSH
 
-- Static: `ansible/inventory` — localhost, talos-vps
-- Dynamic: `ansible/terraform_inventory.py` — CoreOS VMs from Terraform state
-- Never add CoreOS VMs to static inventory
+### Talos Management
+- No SSH to Talos nodes. All management via `talosctl` commands run locally.
+- TrueNAS VMs: boot Talos installer ISO, then `talosctl apply-config` over network
+- Hetzner nodes: cloud-init installs Talos, then `talosctl` applies config
 
 ### Secrets
-
-- SOPS (PGP) for confidential files (e.g. Butane config)
+- SOPS (PGP) for Terraform configs
 - Ansible Vault (Bitwarden via `rbw`) for Ansible vars
 - Never commit unencrypted secrets
-
-### CoreOS VMs
-
-- Managed via ignition configs baked into ISOs
-- Manual VM creation on TrueNAS, then Ansible configures
-
-### Talos Linux
-
-- No SSH to Talos nodes — managed via `talosctl`
 
 ## Development Workflow
 
@@ -66,8 +52,7 @@ uv run ansible-lint
 
 - `ansible/playbooks/bootstrap.yaml` — Full bootstrap entry point
 - `ansible/playbooks/run.yaml` — Idempotent config entry point
-- `ansible/terraform_inventory.py` — Dynamic inventory for CoreOS VMs
-- `terraform/coreos-vm/main.tf` — CoreOS ignition generation
+- `ansible/playbooks/talos/bootstrap.yaml` — Hetzner + TrueNAS Talos provisioning
+- `ansible/playbooks/truenas/setup_host.yaml` — TrueNAS health check
 - `terraform/hetzner/main.tf` — Hetzner Talos provisioning
-- `terraform/generate_user_data.sh` — SOPS decrypt + merge Butane/NM
-- `terraform/coreos-vm/create_iso.sh` — coreos-installer Docker wrapper
+- `terraform/hetzner/variables.tf` — node_count, server_type, etc.

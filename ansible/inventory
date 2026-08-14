@@ -1,5 +1,2 @@
 [all]
 localhost ansible_connection=local
-
-[k8s_vps]
-talos-vps ansible_connection=local
