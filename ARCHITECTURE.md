@@ -20,7 +20,7 @@ Ansible-based infrastructure-as-code for managing on-premise (TrueNAS + Talos VM
 │                    TrueNAS (bare-metal)                      │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Talos VM (wn1, wn2, ...)                               ││
-│  │    ↓ Talos installer ISO + talosctl apply-config         ││
+│  │    ↓ Terraform generates configs + talosctl apply-config ││
 │  │  Full Kubernetes                                        ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
@@ -53,9 +53,12 @@ infra/
 │   └── group_vars/
 │       └── all/                 # Global vars (user, system, network)
 └── terraform/
-    └── hetzner/
-        ├── main.tf              # hcloud provider, Talos provisioning
-        └── variables.tf         # node_count, server_type, etc.
+    ├── hetzner/
+    │   ├── main.tf              # hcloud provider, Talos provisioning
+    │   └── variables.tf         # node_count, server_type, etc.
+    └── talos-home/
+        ├── main.tf              # siderolabs/talos provider, machine config generation
+        └── generated/           # Generated Talos machine configs (gitignored)
 ```
 
 ## Usage
@@ -76,7 +79,7 @@ ansible-playbook ansible/playbooks/run.yaml
 
 - **Talos everywhere**: Both Hetzner VPS and TrueNAS VMs run Talos. No CoreOS/k3s.
 - **No SSH to Talos nodes**: Managed entirely via `talosctl`. No Ansible inventory for Talos nodes.
-- **TrueNAS VMs**: Boot standard Talos installer ISO, then `talosctl apply-config` over the network.
+- **TrueNAS VMs**: Terraform generates Talos machine configs, you boot VMs with installer ISO, then `talosctl apply-config` over the network.
 - **Naming Convention**: All nodes use `-wn1`, `-wn2`, etc. (1-indexed). No cp/wn split.
 - **Secrets**: SOPS (PGP) for Terraform configs. Ansible Vault (Bitwarden via `rbw`) for Ansible vars.
 
