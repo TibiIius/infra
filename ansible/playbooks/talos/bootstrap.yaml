@@ -46,18 +46,25 @@
   connection: local
   gather_facts: false
   vars:
-    talos_version: "1.7.0"
-    talos_cluster_name: "talos-home"
-    talos_endpoint: "https://192.168.178.192:6443"
-    talos_nodes:
+    tf_dir: ../terraform/talos-home
+    control_plane_ips:
       - "192.168.178.192"
+    worker_ips: []
   tasks:
-    - name: Generate Talos machine config
-      ansible.builtin.command:
-        cmd: "talosctl gen config {{ talos_cluster_name }} {{ talos_endpoint }} /tmp/talos-{{ talos_cluster_name }}"
-      args:
-        creates: "/tmp/talos-{{ talos_cluster_name }}/machine-config.yaml"
-      changed_when: false
+    - name: Generate Talos machine configs
+      community.general.terraform:
+        project_path: "{{ tf_dir }}"
+        state: present
+        variables:
+          control_plane_ips: "{{ control_plane_ips }}"
+          worker_ips: "{{ worker_ips }}"
+      register: tf_output
+
+    - name: Display generated configs
+      ansible.builtin.debug:
+        msg: >
+          Talos configs generated at {{ tf_output.outputs.config_dir.value }}.
+          Cluster endpoint: {{ tf_output.outputs.cluster_endpoint.value }}
 
     - name: Pause for VM creation
       ansible.builtin.pause:
@@ -65,16 +72,30 @@
           Boot Talos VMs on TrueNAS with the Talos installer ISO.
           Once VMs are running and reachable, press Enter to continue...
 
-    - name: Apply Talos config to nodes
+    - name: Apply Talos config to control plane nodes
       ansible.builtin.command:
-        cmd: "talosctl --nodes {{ item }} apply-config --file /tmp/talos-{{ talos_cluster_name }}/machine-config.yaml"
-      loop: "{{ talos_nodes }}"
+        cmd: >
+          talosctl --nodes {{ item }}
+          apply-config
+          --file {{ tf_output.outputs.config_dir.value }}/cp{{ index control_plane_ips item }}/machine-config.yaml
+      loop: "{{ control_plane_ips }}"
+      changed_when: true
+      failed_when: false
+
+    - name: Apply Talos config to worker nodes
+      ansible.builtin.command:
+        cmd: >
+          talosctl --nodes {{ item }}
+          apply-config
+          --file {{ tf_output.outputs.config_dir.value }}/wn{{ index worker_ips item }}/machine-config.yaml
+      loop: "{{ worker_ips }}"
+      when: worker_ips | length > 0
       changed_when: true
       failed_when: false
 
     - name: Wait for Talos API to be ready
       ansible.builtin.command:
-        cmd: "talosctl --nodes {{ talos_endpoint }} health"
+        cmd: "talosctl --nodes {{ tf_output.outputs.cluster_endpoint.value }} health"
       register: talos_health
       until: talos_health.rc == 0
       retries: 30
@@ -84,7 +105,7 @@
 
     - name: Wait for Kubernetes API to be ready
       ansible.builtin.command:
-        cmd: "kubectl --kubeconfig /tmp/talos-{{ talos_cluster_name }}/kubernetes.yaml get nodes"
+        cmd: "kubectl --kubeconfig {{ tf_output.outputs.config_dir.value }}/kubernetes.yaml get nodes"
       register: k8s_ready
       until: k8s_ready.rc == 0
       retries: 60
@@ -94,4 +115,4 @@
 
     - name: Display cluster status
       ansible.builtin.debug:
-        msg: "Talos home cluster is ready at {{ talos_endpoint }}"
+        msg: "Talos home cluster is ready at {{ tf_output.outputs.cluster_endpoint.value }}"
