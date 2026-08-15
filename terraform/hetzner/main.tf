@@ -14,7 +14,7 @@ provider "hcloud" {
 resource "hcloud_server" "talos_node" {
   count = var.node_count
 
-  name        = "${var.cluster_name}-wn${count.index + 1}"
+  name        = "${var.cluster_name}-node${count.index + 1}"
   image       = "ubuntu-26.04"
   server_type = var.server_type
   location    = var.location
@@ -22,14 +22,17 @@ resource "hcloud_server" "talos_node" {
   user_data = <<-EOT
     #!/bin/bash
     set -euo pipefail
-    TALOS_VERSION="${talos_version}"
+    TALOS_VERSION="${var.talos_version}"
+
+    # Download talosctl
     curl -fsSL "https://github.com/siderolabs/talos/releases/download/v\${TALOS_VERSION}/talosctl-linux-amd64" -o /usr/local/bin/talosctl
     chmod +x /usr/local/bin/talosctl
+
+    # Generate config and install Talos
     TALOS_DIR="/etc/talos"
     mkdir -p "\${TALOS_DIR}"
     talosctl gen config talos-vps "https://\${PRIVATE_IP}:6443" "\${TALOS_DIR}"
     talosctl install node --config "\${TALOS_DIR}/machine-config.yaml"
-    systemctl reboot
   EOT
 
   private_net {
@@ -62,9 +65,4 @@ output "node_ips" {
 output "node_private_ips" {
   value       = hcloud_server.talos_node[*].private_net[0].ip_address
   description = "Private IPv4 addresses of Talos nodes"
-}
-
-output "talos_endpoint" {
-  value       = "https://${hcloud_server.talos_node[0].private_net[0].ip_address}:6443"
-  description = "Talos Kubernetes API endpoint"
 }
