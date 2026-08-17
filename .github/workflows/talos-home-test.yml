@@ -1,0 +1,64 @@
+name: bootstrap-talos
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch: {}
+
+env:
+  TALOS_VERSION: v1.13.8
+  KUBECTL_VERSION: v1.36.3
+  ISO_DIR: /home/runner/talos-iso-cache
+
+jobs:
+  bringup:
+    name: Bring up single-node Talos + verify Ready
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system deps (QEMU, 7zip, python3, curl)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qemu-system-x86 qemu-utils p7zip-full curl python3
+
+      - name: Install tools via mise
+        uses: jdx/mise-action@v4
+
+      - name: Cache Talos ISO
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ISO_DIR }}
+          key: talos-${{ env.TALOS_VERSION }}-metal-amd64
+          restore-keys: |
+            talos-${{ env.TALOS_VERSION }}-
+
+      - name: Download Talos ISO (if not cached)
+        run: |
+          mkdir -p "${ISO_DIR}"
+          if [[ ! -f "${ISO_DIR}/metal-amd64.iso" ]]; then
+            curl -fsSL -o "${ISO_DIR}/metal-amd64.iso" \
+              "https://github.com/siderolabs/talos/releases/download/${TALOS_VERSION}/metal-amd64.iso"
+          fi
+          ls -lh "${ISO_DIR}/"
+
+      - name: Run bring-up + verify node is Ready
+        env:
+          TALOS_ISO: ${{ env.ISO_DIR }}/metal-amd64.iso
+        run: bash test/talos-home/bringup.sh
+
+      - name: Upload bring-up artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: talos-home-bringup-artifacts
+          path: |
+            /tmp/talos-home-test.*/serial.log
+            /tmp/talos-home-test.*/kubeconfig
+            /tmp/talos-home-test.*/controlplane.yaml
+          if-no-files-found: ignore
