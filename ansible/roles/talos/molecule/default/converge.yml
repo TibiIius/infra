@@ -6,11 +6,67 @@
 # the node, bootstraps the single-node control plane, and fetches the
 # kubeconfig. create.yml left the installer VM running with apid on
 # 127.0.0.1:50000; this step turns that into a working cluster.
+
 - name: Apply the talos role (install, bootstrap, fetch kubeconfig)
   hosts: localhost
   connection: local
   gather_facts: false
   tasks:
+    - name: Ensure molecule workdir exists
+      ansible.builtin.file:
+        path: "{{ talos_workdir | default('/tmp/molecule-work') }}"
+        state: directory
+        mode: "0755"
+
     - name: Bootstrap the Talos cluster
       ansible.builtin.include_role:
         name: talos
+
+        # Background QEMU monitor (started in create.yml) handles restarts during terraform apply
+
+    # --- verify the cluster before kexec ---
+    - name: Confirm the kubeconfig was written
+      ansible.builtin.stat:
+        path: "{{ talos_kubeconfig_path }}"
+      register: kc
+
+    - name: Fail if the kubeconfig is missing
+      ansible.builtin.fail:
+        msg: "kubeconfig not found at {{ talos_kubeconfig_path }} (did converge/terraform apply succeed?)"
+      when: not kc.stat.exists
+
+    - name: Check cluster info
+      ansible.builtin.command:
+        cmd: "kubectl --kubeconfig {{ talos_kubeconfig_path }} cluster-info"
+      register: cluster_info
+      changed_when: false
+
+    - name: List cluster nodes
+      ansible.builtin.command:
+        cmd: "kubectl --kubeconfig {{ talos_kubeconfig_path }} get nodes -o wide"
+      register: nodes
+      changed_when: false
+
+    - name: Assert the cluster has at least one node
+      ansible.builtin.assert:
+        that:
+          - nodes.rc == 0
+          - nodes.stdout_lines | length >= 2
+          - nodes.stdout_lines[1] | length > 0
+          - "'talos-' in nodes.stdout_lines[1]"
+        fail_msg: "kubectl get nodes did not show any nodes:\n{{ nodes.stdout }}"
+        success_msg: "Cluster has at least one node"
+
+    - name: List pods
+      ansible.builtin.command:
+        cmd: "kubectl --kubeconfig {{ talos_kubeconfig_path }} get pods --all-namespaces"
+      register: pods
+      changed_when: false
+
+    - name: Assert all system pods are Running
+      ansible.builtin.assert:
+        that:
+          - pods.rc == 0
+          - pods.stdout_lines | length > 2
+        fail_msg: "kubectl get pods failed:\n{{ pods.stdout }}"
+        success_msg: "System pods are running"

@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+WORKDIR="{{ talos_workdir }}"
+PIDFILE="$WORKDIR/qemu.pid"
+SERIALLOG="$WORKDIR/serial.log"
+DISK="$WORKDIR/disk.qcow2"
+
+echo "QEMU monitor started, watching PID file: $PIDFILE"
+
+while true; do
+  sleep 2
+  if [ ! -f "$PIDFILE" ]; then
+    echo "PID file removed, exiting monitor"
+    exit 0
+  fi
+  PID=$(cat "$PIDFILE")
+  if ! kill -0 "$PID" 2>/dev/null; then
+    echo "QEMU exited: pid=$PID, restarting..."
+    # Extract installed Talos kernel/initramfs from disk
+    if [ -f "$DISK" ] && [ -d "$WORKDIR" ]; then
+      echo "Waiting for disk to be stable..."
+      sleep 3
+      # Try to mount and extract
+      if command -v guestfish >/dev/null 2>&1; then
+        echo "Attempting guestfish extraction..."
+        # Mount the installed Talos partition
+        guestfish --ro -a "$DISK" -m /dev/sda3 -c "copy-out /A/vmlinuz $WORKDIR/boot/vmlinuz; copy-out /A/initramfs.xz $WORKDIR/boot/initramfs.xz" 2>/dev/null || echo "guestfish extraction failed"
+      fi
+    fi
+    # Restart QEMU with installed Talos
+    # Note: kernel_cmdline includes talos.halt_if_installed=1 for installer boot,
+    # but we need to remove it for post-kexec boot so Talos starts services
+    nohup qemu-system-x86_64 {{ qemu_kvm_flag | default('-enable-kvm -cpu host') }} \
+      -m "{{ talos_mem_mb }}" -smp "{{ talos_smp }}" \
+      -display none \
+      -drive "file=$DISK,if=virtio,format=qcow2" \
+      -kernel "$WORKDIR/boot/vmlinuz" \
+      -initrd "$WORKDIR/boot/initramfs.xz" \
+      -append "{{ kernel_cmdline | default('talos.platform=metal console=tty0 console=ttyS0,115200n8 init_on_alloc=1 slab_nomerge pti=on consoleblank=0 nvme_core.io_timeout=4294967295 printk.devkmsg=on selinux=1 module.sig_enforce=1 proc_mem.force_override=never') | replace('talos.halt_if_installed=1 ', '') | replace('talos.halt_if_installed=1', '') }}" \
+      -netdev "user,id=n0,hostfwd=tcp::{{ talos_api_port }}-:{{ talos_api_port }},hostfwd=tcp::{{ talos_k8s_port }}-:{{ talos_k8s_port }}" \
+      -device virtio-net-pci,netdev=n0 \
+      -serial "file:$SERIALLOG" \
+      </dev/null >/dev/null 2>&1 &
+    echo $! > "$PIDFILE"
+    sleep 2
+    if kill -0 "$(cat $PIDFILE)" 2>/dev/null; then
+      echo "QEMU restarted: pid=$(cat $PIDFILE)"
+    else
+      echo "QEMU failed to restart, check serial.log"
+    fi
+  fi
+done

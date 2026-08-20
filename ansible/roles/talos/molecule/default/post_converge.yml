@@ -1,0 +1,98 @@
+---
+# After converge installs Talos and bootstraps the cluster, Talos reboots via
+# kexec, which causes QEMU to exit. This task file:
+# 1. Waits for QEMU to exit (kexec happens)
+# 2. Extracts the installed Talos's kernel and initramfs from the disk
+# 3. Restarts QEMU with the installed Talos's kernel and initramfs
+
+# --- wait for QEMU to exit (kexec happens) ---
+- name: Wait for QEMU to exit (kexec happens)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    deadline=$((SECONDS + 600))
+    while [[ -f "{{ talos_workdir }}/qemu.pid" ]] && kill -0 "$(cat "{{ talos_workdir }}/qemu.pid")" 2>/dev/null; do
+      if [[ $SECONDS -ge $deadline ]]; then
+        echo "Timeout waiting for QEMU to exit"
+        exit 1
+      fi
+      sleep 2
+    done
+    # Remove the qemu.pid file
+    rm -f "{{ talos_workdir }}/qemu.pid"
+  args:
+    chdir: "{{ talos_workdir }}"
+    executable: /bin/bash
+  changed_when: true
+  register: qemu_exit
+  failed_when: false
+
+- name: Extract the installed Talos kernel and initramfs from the disk
+  ansible.builtin.shell: |
+    set -euo pipefail
+    # Extract vmlinuz and initramfs.xz from /A/ on /dev/sda3
+    guestfish --ro -a disk.qcow2 -m /dev/sda3 copy-out /A/vmlinuz /tmp/
+    guestfish --ro -a disk.qcow2 -m /dev/sda3 copy-out /A/initramfs.xz /tmp/
+  args:
+    chdir: "{{ talos_workdir }}"
+  changed_when: true
+
+- name: Restart QEMU with the installed Talos kernel and initramfs
+  ansible.builtin.shell: |
+    set -euo pipefail
+    # shellcheck disable=SC2086
+    nohup qemu-system-x86_64 {{ qemu_kvm_flag | default('-enable-kvm -cpu host') }} \
+      -m "{{ talos_mem_mb }}" -smp "{{ talos_smp }}" \
+      -display none \
+      -drive "file=disk.qcow2,if=virtio,format=qcow2" \
+      -kernel /tmp/vmlinuz -initrd /tmp/initramfs.xz \
+      -append "talos.platform=metal console=ttyS0,115200n8 init_on_alloc=1 slab_nomerge pti=on consoleblank=0 nvme_core.io_timeout=4294967295 printk.devkmsg=on selinux=1 module.sig_enforce=1 proc_mem.force_override=never" \
+      -netdev "user,id=n0,hostfwd=tcp::{{ talos_api_port }}-:{{ talos_api_port }},hostfwd=tcp::{{ talos_k8s_port }}-:{{ talos_k8s_port }}" \
+      -device virtio-net-pci,netdev=n0 \
+      -serial "file:serial.log" \
+      -no-shutdown \
+      </dev/null >/dev/null 2>&1 &
+    echo $! > qemu.pid
+    sleep 2
+    if kill -0 "$(cat qemu.pid)" 2>/dev/null; then
+      echo "qemu restarted: pid=$(cat qemu.pid) kvm=[{{ qemu_kvm_flag | default('-enable-kvm -cpu host') }}]"
+    else
+      echo "qemu failed to restart, check serial.log"
+      exit 1
+    fi
+  args:
+    chdir: "{{ talos_workdir }}"
+    executable: /bin/bash
+  changed_when: true
+  register: qemu_restart
+
+- name: Show QEMU restart status
+  ansible.builtin.debug:
+    msg: "{{ qemu_restart.stdout_lines }}"
+
+# --- wait for the maintenance API (apid) after restart ---
+- name: Wait for the maintenance API to be ready after restart
+  block:
+    - name: Wait for apid on 127.0.0.1:{{ talos_api_port }}
+      ansible.builtin.command:
+        cmd: talosctl version --insecure --nodes 127.0.0.1:{{ talos_api_port }}
+      register: apid
+      until: apid.rc == 0
+      retries: 300
+      delay: 1
+      changed_when: false
+  rescue:
+    - name: Dump the QEMU serial log
+      ansible.builtin.command:
+        cmd: tail -n 60 serial.log
+      args:
+        chdir: "{{ talos_workdir }}"
+      register: serial_tail
+      changed_when: false
+      failed_when: false
+    - name: Fail with diagnostics
+      ansible.builtin.fail:
+        msg: "Talos maintenance API never came up after restart. serial.log tail:\n{{ serial_tail.stdout | default('(no serial log)') }}"
+
+- name: Confirm apid is ready after restart
+  ansible.builtin.debug:
+    msg: "Talos maintenance API is ready on 127.0.0.1:{{ talos_api_port }} after restart"

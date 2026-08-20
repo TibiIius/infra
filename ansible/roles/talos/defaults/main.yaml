@@ -34,4 +34,18 @@ talos_kubeconfig_server: "https://{{ talos_client_ip }}:6443"
 talos_client_sans: "{{ [talos_client_ip, 'localhost'] }}"
 
 # Talos version contract for machine configuration generation
-talos_version: "v1.13.8"
+# Read from environment (set by molecule.yml from TALOS_VERSION), fallback to default
+# TALOS_VERSION in .mise.toml is "1.13.8", but Terraform expects "v1.13.8"
+talos_version: "{{ lookup('env', 'TALOS_VERSION') | default('1.13.8', true) | regex_replace('^v?', 'v') }}"
+
+# QEMU KVM flag for post_converge.yml
+# Set by create.yml if KVM is available
+qemu_kvm_flag: ""
+
+# Kernel cmdline for QEMU boot
+# Set by create.yml
+kernel_cmdline: ""
+
+# Working directory for QEMU VM
+# Set by create.yml
+talos_workdir: ""

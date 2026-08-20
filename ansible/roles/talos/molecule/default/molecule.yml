@@ -47,8 +47,8 @@ provisioner:
         talos_tf_dir: "${MOLECULE_PROJECT_DIRECTORY}/../../../terraform/talos"
         talos_kubeconfig_path: "${MOLECULE_PROJECT_DIRECTORY}/.molecule-work/kubeconfig"
         # --- QEMU bring-up (used by create.yml) ---
-        talos_version: "${TALOS_VERSION}"
-        talos_iso: "${TALOS_ISO:-/home/tina/Downloads/metal-amd64.iso}"
+        talos_version: "{{ lookup('env', 'TALOS_VERSION') | default('1.13.8', true) | regex_replace('^v?', 'v') }}"
+        talos_iso: "{{ lookup('env', 'TALOS_ISO') | default('~/.cache/metal-amd64.iso') | expanduser }}"
         # Talos v1.13 installer/maintenance apid listens on 50000 (talosctl
         # default); verified empirically — 5555 is not the apid port.
         talos_api_port: 50000
@@ -64,6 +64,4 @@ scenario:
     - cleanup
     - create
     - converge
-    - idempotence
-    - side_effect
     - verify

@@ -14,38 +14,22 @@
   ansible.builtin.wait_for:
     host: "{{ item }}"
     port: "{{ talos_api_port }}"
-    timeout: 900
+    timeout: 120
   loop: "{{ talos_node_ips }}"
 
 - name: Apply Talos (generate config, install, bootstrap, get kubeconfig)
   community.general.terraform:
     project_path: "{{ talos_tf_dir }}"
     state: present
-    # complex_vars=true so the node_ips list serializes to valid HCL
-    # (["ip", ...]) instead of Python's single-quoted str (['ip']) which
-    # terraform -var rejects.
     complex_vars: true
     variables:
       cluster_name: "{{ talos_cluster_name }}"
       node_ips: "{{ talos_node_ips }}"
       install_disk: "{{ talos_install_disk }}"
-      # Endpoint = node's real slirp IP so the kube-apiserver binds to the
-      # guest's slirp interface (reachable by node + client). See defaults.
       cluster_endpoint: "{{ talos_cluster_endpoint }}"
-      # Client-facing SANs on both the machine/apid cert AND the APIServer cert,
-      # so the provider can mTLS to the installed apid at 127.0.0.1 (hostfwd)
-      # and kubectl can reach the API there.
       client_sans: "{{ talos_client_sans }}"
-      # Talos version contract for machine configuration generation
       talos_version: "{{ talos_version }}"
   register: talos_tf_output
-
-- name: Display Talos outputs
-  ansible.builtin.debug:
-    msg:
-      - "Cluster:    {{ talos_tf_output.outputs.cluster_name.value }}"
-      - "Endpoint:   {{ talos_tf_output.outputs.cluster_endpoint.value }}"
-      - "Kubeconfig: {{ talos_tf_output.outputs.kubeconfig.value | length }} bytes"
 
 - name: Ensure the kubeconfig directory exists
   ansible.builtin.file:
@@ -62,15 +46,11 @@
     dest: "{{ talos_kubeconfig_path }}"
     mode: "0600"
 
-- name: Wait for the Kubernetes API to be ready
+- name: Verify the Kubernetes API is ready
   ansible.builtin.command:
     cmd: "kubectl --kubeconfig {{ talos_kubeconfig_path }} get nodes"
   register: k8s_ready
   until: k8s_ready.rc == 0
-  retries: 30
-  delay: 10
+  retries: 15
+  delay: 5
   changed_when: false
-
-- name: Display cluster status
-  ansible.builtin.debug:
-    msg: "Talos cluster '{{ talos_cluster_name }}' is ready at {{ talos_tf_output.outputs.cluster_endpoint.value }}"

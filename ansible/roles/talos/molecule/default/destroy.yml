@@ -33,6 +33,22 @@
       failed_when: false
       changed_when: false
 
+    - name: Stop QEMU monitor via PID file
+      ansible.builtin.shell: |
+        set -euo pipefail
+        if [ -f monitor.pid ]; then
+          PID="$(cat monitor.pid)"
+          kill "$PID" 2>/dev/null || true
+          echo "stopped monitor pid=${PID}"
+        else
+          echo "no monitor.pid found; nothing to stop"
+        fi
+      args:
+        chdir: "{{ workdir }}"
+        executable: /bin/bash
+      failed_when: false
+      changed_when: false
+
     - name: Sweep any stray Talos QEMU VMs (fallback)
       ansible.builtin.shell: |
         set -euo pipefail
@@ -44,11 +60,16 @@
       failed_when: false
       changed_when: false
 
-    # NOTE: Commented out to keep workdir for debugging
-    # - name: Remove the scratch workdir
-    #   ansible.builtin.file:
-    #     path: "{{ workdir }}"
-    #     state: absent
+    - name: Check if serial log exists
+      ansible.builtin.stat:
+        path: "{{ workdir }}/serial.log"
+      register: serial_log
+
+    # Remove the scratch workdir
+    - name: Remove the scratch workdir
+      ansible.builtin.file:
+        path: "{{ workdir }}"
+        state: absent
 
     - name: Remove Terraform state from the shared terraform dir
       ansible.builtin.file:
