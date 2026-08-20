@@ -66,9 +66,14 @@
     - name: Extract the installer kernel and initramfs from the ISO
       ansible.builtin.shell: |
         set -euo pipefail
-        mkdir -p boot
-        # Use guestfish to extract files from ISO (available on CI)
-        guestfish --ro -a "{{ iso_path }}" -m /dev/sda3 copy-out /A/ boot/
+        mkdir -p isomnt boot
+        if command -v 7z >/dev/null 2>&1; then
+          7z x -y -oisomnt "{{ iso_path }}" >/dev/null
+        else
+          bsdtar -xf "{{ iso_path }}" -C isomnt
+        fi
+        cp isomnt/boot/vmlinuz boot/vmlinuz
+        cp isomnt/boot/initramfs.xz boot/initramfs.xz
       args:
         chdir: "{{ talos_workdir }}"
         creates: "{{ talos_workdir }}/boot/vmlinuz"
