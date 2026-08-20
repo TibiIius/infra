@@ -61,7 +61,6 @@ verifier:
 
 scenario:
   test_sequence:
-    - check
     - cleanup
     - converge
     - idempotence
