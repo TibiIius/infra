@@ -56,11 +56,8 @@ jobs:
         run: |
           terraform init
 
-      - name: Run molecule tests
-        working-directory: ansible/roles/talos
-        run: |
-          export ANSIBLE_ROLES_PATH="$PWD/../..:$PWD/../../.."
-          uv run molecule test
+      # Molecule tests disabled - nested virtualization not available in GH Actions
+      # Kept in repo for local testing with: uv run molecule test -s default
 
       - name: Upload test artifacts (on failure)
         if: failure()
