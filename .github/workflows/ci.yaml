@@ -51,6 +51,11 @@ jobs:
         working-directory: ansible
         run: uv run ansible-galaxy install -r requirements.yaml
 
+      - name: Initialize terraform
+        working-directory: terraform/talos
+        run: |
+          terraform init
+
       - name: Run molecule tests
         working-directory: ansible/roles/talos
         run: |
