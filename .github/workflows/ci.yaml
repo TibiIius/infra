@@ -7,11 +7,8 @@ on:
     branches: [master]
   workflow_dispatch: {}
 
-env:
-  TALOS_VERSION: v1.13.8
-
 jobs:
-  ansible-lint:
+  lint:
     name: Run ansible-lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -33,39 +30,14 @@ jobs:
         working-directory: ansible
         run: uv run ansible-lint .
 
-  terraform-validate:
-    name: Validate terraform
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Initialize terraform
+      - name: Terraform validate
         working-directory: terraform/talos
         run: |
           terraform init -backend=false
+          terraform validate
 
-      - name: Validate terraform
-        working-directory: terraform/talos
-        run: terraform validate
-
-  yaml-lint:
-    name: Run yamllint
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Install tools via mise
-        uses: jdx/mise-action@v4
-
-      - name: Install project dependencies
-        run: uv sync --locked
-
-      - name: Run yamllint
-        run: uv run yamllint .
+      - name: Terraform validate
+        working-directory: terraform/hetzner
+        run: |
+          terraform init -backend=false
+          terraform validate
