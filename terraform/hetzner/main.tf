@@ -19,20 +19,20 @@ resource "hcloud_server" "talos_node" {
   server_type = var.server_type
   location    = var.location
 
-  user_data = <<-EOT
+  user_data = <<EOT
     #!/bin/bash
     set -euo pipefail
     TALOS_VERSION="${var.talos_version}"
 
     # Download talosctl
-    curl -fsSL "https://github.com/siderolabs/talos/releases/download/v\\${TALOS_VERSION}/talosctl-linux-amd64" -o /usr/local/bin/talosctl
+    curl -fsSL "https://github.com/siderolabs/talos/releases/download/v$$TALOS_VERSION/talosctl-linux-amd64" -o /usr/local/bin/talosctl
     chmod +x /usr/local/bin/talosctl
 
     # Generate config and install Talos
     TALOS_DIR="/etc/talos"
-    mkdir -p "\\${TALOS_DIR}"
-    talosctl gen config talos-vps "https://\\${PRIVATE_IP}:6443" "\\${TALOS_DIR}"
-    talosctl install node --config "\\${TALOS_DIR}/machine-config.yaml"
+    mkdir -p "$$TALOS_DIR"
+    talosctl gen config talos-vps "https://$$PRIVATE_IP:6443" "$$TALOS_DIR"
+    talosctl install node --config "$$TALOS_DIR/machine-config.yaml"
   EOT
 
   private_net {
