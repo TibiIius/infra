@@ -41,7 +41,7 @@ jobs:
           mkdir -p /home/runner/talos-iso-cache
           if [[ ! -f /home/runner/talos-iso-cache/metal-amd64.iso ]]; then
             curl -fsSL -o /home/runner/talos-iso-cache/metal-amd64.iso \
-              "https://github.com/siderolabs/talos/releases/download/${{ env.TALOS_VERSION }}/metal-amd64.iso"
+              "https://github.com/siderolabs/talos/releases/download/v${{ env.TALOS_VERSION }}/metal-amd64.iso"
           fi
 
       - name: Install project dependencies (including molecule)
