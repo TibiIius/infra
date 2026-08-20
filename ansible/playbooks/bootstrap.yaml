@@ -4,5 +4,3 @@
 - import_playbook: vps/bootstrap.yaml
 
 - import_playbook: home/bootstrap.yaml
-
-- import_playbook: run.yaml

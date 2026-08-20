@@ -14,7 +14,6 @@ variable "cluster_name" {
 
 variable "talos_version" {
   type        = string
-  default     = "v1.13"
   description = "Talos version contract used to generate the machine configuration"
 }
 

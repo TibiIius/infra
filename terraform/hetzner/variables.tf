@@ -30,7 +30,6 @@ variable "location" {
 
 variable "talos_version" {
   type        = string
-  default     = "1.7.0"
   description = "Talos Linux version to install"
 }
 

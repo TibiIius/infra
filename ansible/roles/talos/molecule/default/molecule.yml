@@ -47,7 +47,7 @@ provisioner:
         talos_tf_dir: "${MOLECULE_PROJECT_DIRECTORY}/../../../terraform/talos"
         talos_kubeconfig_path: "${MOLECULE_PROJECT_DIRECTORY}/.molecule-work/kubeconfig"
         # --- QEMU bring-up (used by create.yml) ---
-        talos_version: "v1.13.8"
+        talos_version: "${TALOS_VERSION}"
         talos_iso: "${TALOS_ISO:-/home/tina/Downloads/metal-amd64.iso}"
         # Talos v1.13 installer/maintenance apid listens on 50000 (talosctl
         # default); verified empirically — 5555 is not the apid port.

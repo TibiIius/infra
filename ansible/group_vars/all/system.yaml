@@ -9,8 +9,6 @@ package_list:
   - name: curl
   - name: wget
   - name: unzip
-  - name: ranger
-  - name: ncdu
   - name: traceroute
 base_install_dir: "/opt"
 
@@ -20,3 +18,8 @@ security_autoupdate_enabled: false # We use hifis.unattended_upgrades instead
 
 # geerlingguy.ntp
 ntp_timezone: "Europe/Berlin"
+
+# hifis.unattended_upgrades
+unattended_automatic_reboot: true
+unattended_automatic_reboot_time: "06:00"
+unattended_update_days: '{"Mon";"Wed";"Fri"};'

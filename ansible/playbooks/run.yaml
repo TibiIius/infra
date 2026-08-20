@@ -1,5 +1,0 @@
----
-# Idempotent configuration: run this to ensure all servers are in correct state.
-# No Terraform, no ISO generation, no pauses.
-
-- import_playbook: truenas/setup_host.yaml
