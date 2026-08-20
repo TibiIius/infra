@@ -75,8 +75,8 @@
       ansible.builtin.shell: |
         set -euo pipefail
         mkdir -p isomnt boot
-        if command -v 7z >/dev/null 2>&1; then
-          7z x -y -oisomnt "{{ iso_path }}" >/dev/null
+        if [ -x /usr/bin/7z ]; then
+          /usr/bin/7z x -y -oisomnt "{{ iso_path }}" >/dev/null
         else
           bsdtar -xf "{{ iso_path }}" -C isomnt
         fi
