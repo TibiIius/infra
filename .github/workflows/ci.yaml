@@ -11,59 +11,61 @@ env:
   TALOS_VERSION: v1.13.8
 
 jobs:
-  molecule-test:
-    name: Run molecule tests
+  ansible-lint:
+    name: Run ansible-lint
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Install system deps (QEMU, 7zip, python3, curl)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            qemu-system-x86 qemu-utils p7zip-full curl python3
-
       - name: Install tools via mise
         uses: jdx/mise-action@v4
 
-      - name: Cache Talos ISO
-        uses: actions/cache@v6
-        with:
-          path: /home/runner/talos-iso-cache
-          key: talos-${{ env.TALOS_VERSION }}-metal-amd64
-          restore-keys: |
-            talos-${{ env.TALOS_VERSION }}-
-
-      - name: Download Talos ISO (if not cached)
-        run: |
-          mkdir -p /home/runner/talos-iso-cache
-          if [[ ! -f /home/runner/talos-iso-cache/metal-amd64.iso ]]; then
-            curl -fsSL -o /home/runner/talos-iso-cache/metal-amd64.iso \
-              "https://github.com/siderolabs/talos/releases/download/v${{ env.TALOS_VERSION }}/metal-amd64.iso"
-          fi
-
-      - name: Install project dependencies (including molecule)
+      - name: Install project dependencies
         run: uv sync --locked
 
       - name: Install Ansible Galaxy roles
         working-directory: ansible
         run: uv run ansible-galaxy install -r requirements.yaml
 
+      - name: Run ansible-lint
+        working-directory: ansible
+        run: uv run ansible-lint .
+
+  terraform-validate:
+    name: Validate terraform
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v3
+
       - name: Initialize terraform
         working-directory: terraform/talos
         run: |
-          terraform init
+          terraform init -backend=false
 
-      # Molecule tests disabled - nested virtualization not available in GH Actions
-      # Kept in repo for local testing with: uv run molecule test -s default
+      - name: Validate terraform
+        working-directory: terraform/talos
+        run: terraform validate
 
-      - name: Upload test artifacts (on failure)
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: talos-molecule-artifacts
-          path: |
-            ansible/roles/talos/.molecule-work/
-          if-no-files-found: ignore
+  yaml-lint:
+    name: Run yamllint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install tools via mise
+        uses: jdx/mise-action@v4
+
+      - name: Install project dependencies
+        run: uv sync --locked
+
+      - name: Run yamllint
+        run: uv run yamllint .
