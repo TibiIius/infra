@@ -62,6 +62,7 @@ verifier:
 scenario:
   test_sequence:
     - cleanup
+    - create
     - converge
     - idempotence
     - side_effect
