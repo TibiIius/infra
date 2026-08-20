@@ -30,10 +30,9 @@
       ansible.builtin.shell: |
         pkill -f "qemu-system.*{{ talos_workdir }}" || true
         sleep 1
-      changed_when: false
-      ignore_errors: true
       args:
         executable: /bin/bash
+      changed_when: false
 
     # --- scratch workdir ---
     - name: Reset the scratch workdir (fresh state each run)
@@ -47,14 +46,6 @@
         mode: "0755"
 
     # --- Talos installer ISO ---
-    - name: Install p7zip-full (for ISO extraction on CI)
-      ansible.builtin.apt:
-        name: p7zip-full
-        state: present
-        update_cache: yes
-      when: ansible_os_family in ['Debian', 'Ubuntu']
-      changed_when: false
-
     - name: Stat the preferred ISO location
       ansible.builtin.stat:
         path: "{{ talos_iso }}"
