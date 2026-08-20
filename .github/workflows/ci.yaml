@@ -31,9 +31,10 @@ jobs:
         run: uv run ansible-lint .
 
       - name: Terraform
-        working-directory: terraform
         run: |
-          terraform -chdir=talos init -backend=false
-          terraform -chdir=talos validate
-          terraform -chdir=hetzner init -backend=false
-          terraform -chdir=hetzner validate
+          cd terraform/talos
+          terraform init -backend=false
+          terraform validate
+          cd ../hetzner
+          terraform init -backend=false
+          terraform validate
