@@ -32,3 +32,6 @@ talos_kubeconfig_server: "https://{{ talos_client_ip }}:6443"
 # so the provider can mTLS to the installed apid at 127.0.0.1 (hostfwd) and
 # kubectl can reach the API there — both differ from the node's own IP.
 talos_client_sans: "{{ [talos_client_ip, 'localhost'] }}"
+
+# Talos version contract for machine configuration generation
+talos_version: "v1.13.8"

@@ -36,6 +36,8 @@
       # so the provider can mTLS to the installed apid at 127.0.0.1 (hostfwd)
       # and kubectl can reach the API there.
       client_sans: "{{ talos_client_sans }}"
+      # Talos version contract for machine configuration generation
+      talos_version: "{{ talos_version }}"
   register: talos_tf_output
 
 - name: Display Talos outputs
