@@ -35,7 +35,7 @@ resource "hcloud_server" "talos_node" {
     talosctl install node --config "$$TALOS_DIR/machine-config.yaml"
   EOT
 
-  private_net {
+  network {
     network_id = hcloud_network.talos_network.id
   }
 
