@@ -27,12 +27,12 @@
   tasks:
     # --- cleanup old QEMU processes (if any) ---
     - name: Kill any stale QEMU processes
-      ansible.builtin.shell: |
-        pkill -f "qemu-system.*{{ talos_workdir }}" || true
-        sleep 1
+      ansible.builtin.command:
+        cmd: pkill -f "qemu-system.*{{ talos_workdir }}"
       args:
         executable: /bin/bash
       changed_when: false
+      ignore_errors: true
 
     # --- scratch workdir ---
     - name: Reset the scratch workdir (fresh state each run)
