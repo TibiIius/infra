@@ -30,14 +30,10 @@ jobs:
         working-directory: ansible
         run: uv run ansible-lint .
 
-      - name: Terraform validate
-        working-directory: terraform/talos
+      - name: Terraform
+        working-directory: terraform
         run: |
-          terraform init -backend=false
-          terraform validate
-
-      - name: Terraform validate
-        working-directory: terraform/hetzner
-        run: |
-          terraform init -backend=false
-          terraform validate
+          terraform -chdir=talos init -backend=false
+          terraform -chdir=talos validate
+          terraform -chdir=hetzner init -backend=false
+          terraform -chdir=hetzner validate
