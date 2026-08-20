@@ -27,11 +27,13 @@
   tasks:
     # --- cleanup old QEMU processes (if any) ---
     - name: Kill any stale QEMU processes
-      ansible.builtin.command: |
+      ansible.builtin.shell: |
         pkill -f "qemu-system.*{{ talos_workdir }}" || true
         sleep 1
       changed_when: false
       ignore_errors: true
+      args:
+        executable: /bin/bash
 
     # --- scratch workdir ---
     - name: Reset the scratch workdir (fresh state each run)
@@ -64,14 +66,9 @@
     - name: Extract the installer kernel and initramfs from the ISO
       ansible.builtin.shell: |
         set -euo pipefail
-        mkdir -p isomnt boot
-        if command -v 7z >/dev/null 2>&1; then
-          7z x -y -oisomnt "{{ iso_path }}" >/dev/null
-        else
-          bsdtar -xf "{{ iso_path }}" -C isomnt
-        fi
-        cp isomnt/boot/vmlinuz boot/vmlinuz
-        cp isomnt/boot/initramfs.xz boot/initramfs.xz
+        mkdir -p boot
+        # Use guestfish to extract files from ISO (available on CI)
+        guestfish --ro -a "{{ iso_path }}" -m /dev/sda3 copy-out /A/ boot/
       args:
         chdir: "{{ talos_workdir }}"
         creates: "{{ talos_workdir }}/boot/vmlinuz"
