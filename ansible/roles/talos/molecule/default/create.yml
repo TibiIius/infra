@@ -1,0 +1,143 @@
+---
+# Bring up a single-node Talos control plane in QEMU (installer / maintenance
+# mode) and wait for its maintenance API (apid) to be ready on 127.0.0.1:50000.
+#
+# Mirrors the proven test/talos-home/bringup.sh (steps 0-5), expressed as an
+# Ansible playbook so Molecule owns the VM lifecycle. The VM is left running
+# for the converge/verify steps; destroy.yml tears it down.
+
+- name: Bring up the QEMU Talos installer VM
+  hosts: localhost
+  gather_facts: false
+  vars:
+    node_ip: "127.0.0.1"
+    api_port: "{{ talos_api_port | int }}"
+    k8s_port: "{{ talos_k8s_port | int }}"
+    # Kernel cmdline for the installer boot. Must carry the KSPP-required
+    # params (slab_nomerge, pti=on) or Talos aborts in systemRequirements.
+    kernel_cmdline: >-
+      talos.platform=metal console=tty0 console=ttyS0,115200n8
+      talos.halt_if_installed=1 init_on_alloc=1 slab_nomerge pti=on
+      consoleblank=0 nvme_core.io_timeout=4294967295 printk.devkmsg=on
+      selinux=1 module.sig_enforce=1 proc_mem.force_override=never
+  tasks:
+    # --- scratch workdir ---
+    - name: Reset the scratch workdir (fresh state each run)
+      ansible.builtin.file:
+        path: "{{ talos_workdir }}"
+        state: absent
+    - name: Create the scratch workdir
+      ansible.builtin.file:
+        path: "{{ talos_workdir }}"
+        state: directory
+        mode: "0755"
+
+    # --- Talos installer ISO ---
+    - name: Stat the preferred ISO location
+      ansible.builtin.stat:
+        path: "{{ talos_iso }}"
+      register: iso_stat
+    - name: Resolve the ISO path (use the cache, else download)
+      ansible.builtin.set_fact:
+        iso_path: "{{ talos_iso if iso_stat.stat.exists else (talos_workdir + '/metal-amd64.iso') }}"
+    - name: Download the Talos installer ISO (when not cached)
+      ansible.builtin.get_url:
+        url: "https://github.com/siderolabs/talos/releases/download/{{ talos_version }}/metal-amd64.iso"
+        dest: "{{ talos_workdir }}/metal-amd64.iso"
+        mode: "0644"
+        timeout: 300
+      when: not iso_stat.stat.exists
+
+    # --- kernel + initrd ---
+    - name: Extract the installer kernel and initramfs from the ISO
+      ansible.builtin.shell: |
+        set -euo pipefail
+        mkdir -p isomnt boot
+        if command -v 7z >/dev/null 2>&1; then
+          7z x -y -oisomnt "{{ iso_path }}" >/dev/null
+        else
+          bsdtar -xf "{{ iso_path }}" -C isomnt
+        fi
+        cp isomnt/boot/vmlinuz boot/vmlinuz
+        cp isomnt/boot/initramfs.xz boot/initramfs.xz
+      args:
+        chdir: "{{ talos_workdir }}"
+        creates: "{{ talos_workdir }}/boot/vmlinuz"
+        executable: /bin/bash
+      changed_when: true
+
+    # --- install disk ---
+    - name: Create the 20GB install disk
+      ansible.builtin.command:
+        cmd: qemu-img create -f qcow2 disk.qcow2 20G
+      args:
+        chdir: "{{ talos_workdir }}"
+        creates: "{{ talos_workdir }}/disk.qcow2"
+      changed_when: true
+
+    # --- KVM ---
+    - name: Detect /dev/kvm
+      ansible.builtin.stat:
+        path: /dev/kvm
+      register: kvm_stat
+    - name: Set the KVM flag
+      ansible.builtin.set_fact:
+        kvm_flag: "{{ '-enable-kvm -cpu host' if kvm_stat.stat.exists else '' }}"
+
+    # --- launch the VM ---
+    - name: Launch the QEMU installer VM (slirp, apid+k8s loopback forwards)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        # shellcheck disable=SC2086
+        nohup qemu-system-x86_64 {{ kvm_flag }} \
+          -m "{{ talos_mem_mb }}" -smp "{{ talos_smp }}" \
+          -display none \
+          -drive "file=disk.qcow2,if=virtio,format=qcow2" \
+          -kernel boot/vmlinuz -initrd boot/initramfs.xz \
+          -append "{{ kernel_cmdline }}" \
+          -netdev "user,id=n0,hostfwd=tcp::{{ api_port }}-:{{ api_port }},hostfwd=tcp::{{ k8s_port }}-:{{ k8s_port }}" \
+          -device virtio-net-pci,netdev=n0 \
+          -serial "file:serial.log" \
+          </dev/null >/dev/null 2>&1 &
+        echo $! > qemu.pid
+        sleep 2
+        kill -0 "$(cat qemu.pid)" && echo "qemu up: pid=$(cat qemu.pid) kvm=[{{ kvm_flag }}]"
+      args:
+        chdir: "{{ talos_workdir }}"
+        executable: /bin/bash
+      changed_when: true
+      register: qemu_launch
+    - name: Show QEMU launch status
+      ansible.builtin.debug:
+        msg: "{{ qemu_launch.stdout_lines }}"
+
+    # --- wait for the maintenance API (apid) ---
+    # `nc`/wait_for is unreliable here: slirp accepts the host-side TCP
+    # connection eagerly, so the port "opens" before apid is ready. A real
+    # gRPC call (talosctl version) is the correct readiness probe.
+    - name: Wait for the maintenance API to be ready (with diagnostics on failure)
+      block:
+        - name: Wait for apid on 127.0.0.1:{{ api_port }}
+          ansible.builtin.command:
+            cmd: talosctl version --insecure --nodes {{ node_ip }}:{{ api_port }}
+          register: apid
+          until: apid.rc == 0
+          retries: 300
+          delay: 1
+          changed_when: false
+      rescue:
+        - name: Dump the QEMU serial log
+          ansible.builtin.command:
+            cmd: tail -n 60 serial.log
+          args:
+            chdir: "{{ talos_workdir }}"
+          register: serial_tail
+          changed_when: false
+          failed_when: false
+        - name: Fail with diagnostics
+          ansible.builtin.fail:
+            msg: "Talos maintenance API never came up. serial.log tail:\n{{ serial_tail.stdout | default('(no serial log)') }}"
+
+    - name: Confirm apid is ready
+      ansible.builtin.debug:
+        msg: "Talos maintenance API is ready on {{ node_ip }}:{{ api_port }}"

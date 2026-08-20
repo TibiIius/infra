@@ -1,0 +1,16 @@
+---
+# Apply the `talos` role against the already-booted QEMU node.
+#
+# The role drives `terraform apply` in `talos_tf_dir`, which (via the
+# siderolabs/talos provider) generates the machine config, installs Talos on
+# the node, bootstraps the single-node control plane, and fetches the
+# kubeconfig. create.yml left the installer VM running with apid on
+# 127.0.0.1:50000; this step turns that into a working cluster.
+- name: Apply the talos role (install, bootstrap, fetch kubeconfig)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Bootstrap the Talos cluster
+      ansible.builtin.include_role:
+        name: talos

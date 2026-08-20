@@ -1,60 +1,71 @@
 ---
-- name: Generate Talos machine configs
+# Talos is provisioned entirely by the siderolabs/talos Terraform provider:
+#
+#   talos_machine_secrets -> data.talos_machine_configuration -> talos_machine_configuration_apply
+#   -> talos_machine_bootstrap -> talos_cluster_kubeconfig
+#
+# This role waits for the node's Talos API (50000), drives `terraform apply`
+# (which generates the config, installs it on the node, bootstraps the cluster,
+# and fetches the kubeconfig), then verifies the result with kubectl.
+#
+# Requires: talos_node_ips (list), talos_cluster_name, talos_tf_dir,
+#           talos_kubeconfig_path (defaults to <talos_tf_dir>/generated/kubeconfig).
+- name: Wait for the Talos API (port {{ talos_api_port }}) to be ready on each node
+  ansible.builtin.wait_for:
+    host: "{{ item }}"
+    port: "{{ talos_api_port }}"
+    timeout: 900
+  loop: "{{ talos_node_ips }}"
+
+- name: Apply Talos (generate config, install, bootstrap, get kubeconfig)
   community.general.terraform:
     project_path: "{{ talos_tf_dir }}"
     state: present
+    # complex_vars=true so the node_ips list serializes to valid HCL
+    # (["ip", ...]) instead of Python's single-quoted str (['ip']) which
+    # terraform -var rejects.
+    complex_vars: true
     variables:
       cluster_name: "{{ talos_cluster_name }}"
       node_ips: "{{ talos_node_ips }}"
+      install_disk: "{{ talos_install_disk }}"
+      # Endpoint = node's real slirp IP so the kube-apiserver binds to the
+      # guest's slirp interface (reachable by node + client). See defaults.
+      cluster_endpoint: "{{ talos_cluster_endpoint }}"
+      # Client-facing SANs on both the machine/apid cert AND the APIServer cert,
+      # so the provider can mTLS to the installed apid at 127.0.0.1 (hostfwd)
+      # and kubectl can reach the API there.
+      client_sans: "{{ talos_client_sans }}"
   register: talos_tf_output
 
-- name: Display generated configs
+- name: Display Talos outputs
   ansible.builtin.debug:
-    msg: >
-      Talos configs generated at {{ talos_tf_output.outputs.config_dir.value }}.
-      Cluster endpoint: {{ talos_tf_output.outputs.cluster_endpoint.value }}
+    msg:
+      - "Cluster:    {{ talos_tf_output.outputs.cluster_name.value }}"
+      - "Endpoint:   {{ talos_tf_output.outputs.cluster_endpoint.value }}"
+      - "Kubeconfig: {{ talos_tf_output.outputs.kubeconfig.value | length }} bytes"
 
-- name: Wait for nodes to be reachable
-  ansible.builtin.command:
-    cmd: "ping -c 1 -W 2 {{ item }}"
-  loop: "{{ talos_node_ips }}"
-  register: ping_result
-  until: ping_result.rc == 0
-  retries: 120
-  delay: 10
-  changed_when: false
+- name: Ensure the kubeconfig directory exists
+  ansible.builtin.file:
+    path: "{{ talos_kubeconfig_path | dirname }}"
+    state: directory
+    mode: "0755"
 
-- name: Apply Talos config to nodes
-  ansible.builtin.command:
-    cmd: >-
-      talosctl --nodes {{ item }}
-      apply-config
-      --file {{ talos_tf_output.outputs.config_dir.value }}/node{{ index talos_node_ips item }}/machine-config.yaml
-  loop: "{{ talos_node_ips }}"
-  changed_when: true
-  failed_when: false
+- name: Write the Kubernetes kubeconfig
+  ansible.builtin.copy:
+    # The generated kubeconfig points at the cluster endpoint (the node's real
+    # slirp IP, 10.0.2.15). Rewrite it to the client-facing loopback (127.0.0.1)
+    # so kubectl reaches the API through the hostfwd — mirroring bringup.sh.
+    content: "{{ talos_tf_output.outputs.kubeconfig.value | replace(talos_cluster_endpoint, talos_kubeconfig_server) }}"
+    dest: "{{ talos_kubeconfig_path }}"
+    mode: "0600"
 
-- name: Wait for Talos API to be ready
+- name: Wait for the Kubernetes API to be ready
   ansible.builtin.command:
-    cmd: "talosctl --nodes {{ talos_tf_output.outputs.cluster_endpoint.value }} health"
-  register: talos_health
-  until: talos_health.rc == 0
-  retries: 30
-  delay: 10
-  changed_when: false
-
-- name: Bootstrap the cluster
-  ansible.builtin.command:
-    cmd: "talosctl --nodes {{ talos_tf_output.outputs.cluster_endpoint.value }} bootstrap"
-  changed_when: true
-  failed_when: false
-
-- name: Wait for Kubernetes API to be ready
-  ansible.builtin.command:
-    cmd: "kubectl --kubeconfig {{ talos_tf_output.outputs.config_dir.value }}/kubernetes.yaml get nodes"
+    cmd: "kubectl --kubeconfig {{ talos_kubeconfig_path }} get nodes"
   register: k8s_ready
   until: k8s_ready.rc == 0
-  retries: 60
+  retries: 30
   delay: 10
   changed_when: false
 

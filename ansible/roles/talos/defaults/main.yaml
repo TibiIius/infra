@@ -1,0 +1,34 @@
+---
+# Where to write the generated Kubernetes kubeconfig.
+# Defaults to <talos_tf_dir>/generated/kubeconfig; override in the playbook.
+talos_kubeconfig_path: "{{ talos_tf_dir }}/generated/kubeconfig"
+
+# Disk the Talos installer writes to.
+# /dev/sda on bare metal / SATA VMs, /dev/vda on QEMU virtio.
+talos_install_disk: "/dev/sda"
+
+# Talos maintenance API (apid) port. Talos v1.13 listens on 50000 by default
+# (the talosctl default); 5555 is not the apid port in this version.
+talos_api_port: 50000
+
+# The node's REAL IP (slirp guest IP). The cluster endpoint uses this so the
+# kube-apiserver binds to the guest's slirp interface — reachable by BOTH the
+# node (its own iface, during bootstrap) and the client (via the loopback
+# hostfwd). Using 127.0.0.1 here would bind the API to the guest's loopback,
+# which the host cannot reach through the port-forward, and hangs bootstrap.
+talos_node_real_ip: "10.0.2.15"
+
+# The client-facing loopback IP — what the provider/kubectl connect to.
+talos_client_ip: "127.0.0.1"
+
+# Cluster endpoint (node's real IP) — drives the cluster config + APIServer cert.
+talos_cluster_endpoint: "https://{{ talos_node_real_ip }}:6443"
+
+# The kubeconfig server (client-facing loopback) — the generated kubeconfig
+# points at the endpoint (10.0.2.15), which we rewrite to this for the client.
+talos_kubeconfig_server: "https://{{ talos_client_ip }}:6443"
+
+# Client-facing SANs added to BOTH the machine/apid cert and the APIServer cert,
+# so the provider can mTLS to the installed apid at 127.0.0.1 (hostfwd) and
+# kubectl can reach the API there — both differ from the node's own IP.
+talos_client_sans: "{{ [talos_client_ip, 'localhost'] }}"

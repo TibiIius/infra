@@ -1,0 +1,69 @@
+---
+# Molecule scenario for the `talos` role.
+#
+# Topology: the role is controller-side. It drives the siderolabs/talos
+# Terraform provider, which generates the machine config, applies it to the
+# node, bootstraps the cluster, and fetches the kubeconfig. So Molecule's
+# "instance" is the controller (localhost); the Talos node is a QEMU VM that
+# `create.yml` brings up (installer / maintenance mode) and `destroy.yml`
+# tears down.
+#
+# The VM runs under slirp user-mode NAT, so the host reaches it only via
+# loopback port-forwards. We forward apid (50000) and the k8s API (6443) to
+# 127.0.0.1 and hand the provider node IP 127.0.0.1 - self-consistent for a
+# single-node cluster whose only client is the controller on this host.
+#
+# Scratch + Terraform state live inside the repo (under the project dir) so
+# the mise toolchain (terraform/talosctl/kubectl) resolves for the role; it is
+# gitignored and removed by `destroy.yml`.
+
+driver:
+  name: default
+
+platforms:
+  - name: localhost
+    connection: local
+
+provisioner:
+  name: ansible
+  env:
+    # Cover every plausible "project dir" so the `talos` role resolves no
+    # matter which directory Molecule treats as the project root.
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}:${MOLECULE_PROJECT_DIRECTORY}/..:${MOLECULE_PROJECT_DIRECTORY}/../.."
+    ANSIBLE_LOCALHOST_WARNING: "false"
+    ANSIBLE_DEPRECATION_WARNINGS: "false"
+  inventory:
+    host_vars:
+      localhost:
+        ansible_connection: local
+        # --- Talos role inputs (deterministic for the QEMU target) ---
+        talos_node_ips: ["127.0.0.1"]
+        talos_cluster_name: "talos-home"
+        talos_install_disk: "/dev/vda"
+        # --- Scratch + artifacts (kept inside the repo for mise tooling) ---
+        talos_workdir: "${MOLECULE_PROJECT_DIRECTORY}/.molecule-work"
+        # The role runs `terraform apply` in this dir, so it must hold the real
+        # .tf files. Run `molecule` from the role dir so this resolves.
+        talos_tf_dir: "${MOLECULE_PROJECT_DIRECTORY}/../../../terraform/talos"
+        talos_kubeconfig_path: "${MOLECULE_PROJECT_DIRECTORY}/.molecule-work/kubeconfig"
+        # --- QEMU bring-up (used by create.yml) ---
+        talos_version: "v1.13.8"
+        talos_iso: "${TALOS_ISO:-/home/tina/Downloads/metal-amd64.iso}"
+        # Talos v1.13 installer/maintenance apid listens on 50000 (talosctl
+        # default); verified empirically — 5555 is not the apid port.
+        talos_api_port: 50000
+        talos_k8s_port: 6443
+        talos_mem_mb: 2048
+        talos_smp: 2
+
+verifier:
+  name: ansible
+
+scenario:
+  test_sequence:
+    - check
+    - cleanup
+    - converge
+    - idempotence
+    - side_effect
+    - verify

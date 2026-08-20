@@ -1,4 +1,4 @@
-name: bootstrap-talos
+name: ci
 
 on:
   push:
@@ -9,12 +9,10 @@ on:
 
 env:
   TALOS_VERSION: v1.13.8
-  KUBECTL_VERSION: v1.36.3
-  ISO_DIR: /home/runner/talos-iso-cache
 
 jobs:
-  bringup:
-    name: Bring up single-node Talos + verify Ready
+  molecule-test:
+    name: Run molecule tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -33,32 +31,39 @@ jobs:
       - name: Cache Talos ISO
         uses: actions/cache@v4
         with:
-          path: ${{ env.ISO_DIR }}
+          path: /home/runner/talos-iso-cache
           key: talos-${{ env.TALOS_VERSION }}-metal-amd64
           restore-keys: |
             talos-${{ env.TALOS_VERSION }}-
 
       - name: Download Talos ISO (if not cached)
         run: |
-          mkdir -p "${ISO_DIR}"
-          if [[ ! -f "${ISO_DIR}/metal-amd64.iso" ]]; then
-            curl -fsSL -o "${ISO_DIR}/metal-amd64.iso" \
+          mkdir -p /home/runner/talos-iso-cache
+          if [[ ! -f /home/runner/talos-iso-cache/metal-amd64.iso ]]; then
+            curl -fsSL -o /home/runner/talos-iso-cache/metal-amd64.iso \
               "https://github.com/siderolabs/talos/releases/download/${TALOS_VERSION}/metal-amd64.iso"
           fi
-          ls -lh "${ISO_DIR}/"
 
-      - name: Run bring-up + verify node is Ready
-        env:
-          TALOS_ISO: ${{ env.ISO_DIR }}/metal-amd64.iso
-        run: bash test/talos-home/bringup.sh
+      - name: Setup Python + Ansible venv
+        working-directory: ansible
+        run: |
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade pip setuptools
+          pip install -r requirements.txt
+          ansible-galaxy install -r requirements.yaml
 
-      - name: Upload bring-up artifacts (on failure)
+      - name: Run molecule tests
+        working-directory: ansible/roles/talos
+        run: |
+          export PATH="$PWD/../.venv/bin:$PATH"
+          molecule test
+
+      - name: Upload test artifacts (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: talos-home-bringup-artifacts
+          name: talos-molecule-artifacts
           path: |
-            /tmp/talos-home-test.*/serial.log
-            /tmp/talos-home-test.*/kubeconfig
-            /tmp/talos-home-test.*/controlplane.yaml
+            ansible/roles/talos/.molecule-work/
           if-no-files-found: ignore
