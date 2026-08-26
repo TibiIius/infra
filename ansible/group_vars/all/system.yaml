@@ -1,0 +1,25 @@
+# grog.package (uses apt package names by default)
+package_list:
+  - name: neovim
+  - name: tmux
+  - name: htop
+  - name: git
+  - name: git-lfs
+  - name: zsh
+  - name: curl
+  - name: wget
+  - name: unzip
+  - name: traceroute
+base_install_dir: "/opt"
+
+# geerlingguy.security
+security_ssh_port: "22"
+security_autoupdate_enabled: false # We use hifis.unattended_upgrades instead
+
+# geerlingguy.ntp
+ntp_timezone: "Europe/Berlin"
+
+# hifis.unattended_upgrades
+unattended_automatic_reboot: true
+unattended_automatic_reboot_time: "06:00"
+unattended_update_days: '{"Mon";"Wed";"Fri"};'

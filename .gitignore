@@ -1,3 +1,9 @@
 .venv
 .vagrant
 .ansible
+terraform/*/generated/
+.terraform*
+*.bin
+terraform.tfstate
+terraform.tfstate.backup
+.molecule-work/

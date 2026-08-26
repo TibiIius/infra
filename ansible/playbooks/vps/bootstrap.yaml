@@ -1,0 +1,29 @@
+---
+- name: Bootstrap Talos VPS cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    hetzner_tf_dir: ../terraform/hetzner
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    node_count: 1
+
+    talos_tf_dir: ../terraform/talos
+    talos_cluster_name: talos-vps
+  tasks:
+    - name: Provision Hetzner infrastructure
+      community.general.terraform:
+        project_path: "{{ hetzner_tf_dir }}"
+        state: present
+        variables:
+          hcloud_token: "{{ hcloud_token }}"
+          node_count: "{{ node_count }}"
+      register: hetzner_output
+
+    - name: Set node IPs from Hetzner output
+      ansible.builtin.set_fact:
+        talos_node_ips: "{{ hetzner_output.outputs.node_private_ips.value }}"
+
+    - name: Bootstrap Talos cluster
+      ansible.builtin.include_role:
+        name: talos

@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch: {}
+
+jobs:
+  lint:
+    name: Run ansible-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install tools via mise
+        uses: jdx/mise-action@v4
+
+      - name: Install project dependencies
+        run: uv sync --locked
+
+      - name: Install Ansible Galaxy roles
+        working-directory: ansible
+        run: uv run ansible-galaxy install -r requirements.yaml
+
+      - name: Run ansible-lint
+        working-directory: ansible
+        run: uv run ansible-lint .
+
+      - name: Terraform
+        run: |
+          cd terraform/talos
+          terraform init -backend=false
+          terraform validate
+          cd ../hetzner
+          terraform init -backend=false
+          terraform validate

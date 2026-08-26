@@ -1,0 +1,8 @@
+---
+roles:
+  - name: geerlingguy.ntp
+    version: 2.7.0
+  - name: geerlingguy.security
+    version: 3.0.0
+  - name: grog.package
+    version: v1.4.1

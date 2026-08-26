@@ -1,0 +1,14 @@
+---
+- name: Bootstrap Talos home cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    talos_tf_dir: ../terraform/talos
+    talos_cluster_name: talos-home
+    talos_node_ips:
+      - "192.168.178.192"
+  tasks:
+    - name: Bootstrap Talos cluster
+      ansible.builtin.include_role:
+        name: talos

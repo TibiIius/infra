@@ -1,0 +1,6 @@
+---
+# Top-level bootstrap: provisions infrastructure, then applies configuration.
+
+- import_playbook: vps/bootstrap.yaml
+
+- import_playbook: home/bootstrap.yaml

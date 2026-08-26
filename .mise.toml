@@ -4,9 +4,13 @@ uv = "0"
 "cargo:rbw" = "latest"
 sops = "latest"
 rust = "latest"
+terraform = "latest"
+terraform-ls = "latest"
+tflint = "latest"
+talosctl = "latest"
+kubectl = "latest"
+hcloud = "latest"
 
 [env]
 SOPS_PGP_FP = "711B5B3EEB2661CEF4CAA41F4B3B63F9A1CB361C"
-
-[settings]
-python.uv_venv_auto = true
+TALOS_VERSION = "1.13.8"
