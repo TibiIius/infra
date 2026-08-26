@@ -38,6 +38,10 @@ talos_client_sans: "{{ [talos_client_ip, 'localhost'] }}"
 # TALOS_VERSION in .mise.toml is "1.13.8", but Terraform expects "v1.13.8"
 talos_version: "{{ lookup('env', 'TALOS_VERSION') | default('1.13.8', true) | regex_replace('^v?', 'v') }}"
 
+# Node types map for multi-node support
+# Map of node IP to node_type (controlplane, worker). Defaults to controlplane if not specified.
+talos_node_types: {}
+
 # QEMU KVM flag for post_converge.yml
 # Set by create.yml if KVM is available
 qemu_kvm_flag: ""

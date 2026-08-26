@@ -9,6 +9,7 @@ terraform-ls = "latest"
 tflint = "latest"
 talosctl = "latest"
 kubectl = "latest"
+hcloud = "latest"
 
 [env]
 SOPS_PGP_FP = "711B5B3EEB2661CEF4CAA41F4B3B63F9A1CB361C"

@@ -5,43 +5,15 @@ terraform {
       version = "~> 0.11"
     }
   }
-}
-
-variable "cluster_name" {
-  type        = string
-  description = "Cluster name"
-}
-
-variable "talos_version" {
-  type        = string
-  description = "Talos version contract used to generate the machine configuration"
-}
-
-variable "node_ips" {
-  type        = list(string)
-  description = "IP addresses of cluster nodes"
-}
-
-variable "cluster_endpoint" {
-  type        = string
-  default     = ""
-  description = "Cluster endpoint (auto-generated from first node IP if empty)"
-}
-
-variable "install_disk" {
-  type        = string
-  default     = "/dev/sda"
-  description = "Disk to install Talos on"
-}
-
-variable "client_sans" {
-  type        = list(string)
-  default     = ["127.0.0.1", "localhost"]
-  description = "Client-facing Subject-Alt-Names added to BOTH the machine/apid cert and the Kubernetes API server cert. Needed when clients reach the node via a non-primary address (e.g. a NAT / QEMU loopback port-forward) that differs from the node's own IP."
+  required_version = ">= 1.15.6"
 }
 
 locals {
   endpoint = var.cluster_endpoint != "" ? var.cluster_endpoint : "https://${var.node_ips[0]}:6443"
+  node_type_map = {
+    for ip in var.node_ips :
+    ip => lookup(var.node_types, ip, "controlplane")
+  }
 }
 
 resource "talos_machine_secrets" "cluster" {
@@ -52,7 +24,7 @@ data "talos_machine_configuration" "node" {
   for_each = toset(var.node_ips)
 
   cluster_name     = var.cluster_name
-  machine_type     = "controlplane"
+  machine_type     = local.node_type_map[each.value]
   cluster_endpoint = local.endpoint
   machine_secrets  = talos_machine_secrets.cluster.machine_secrets
   talos_version    = var.talos_version

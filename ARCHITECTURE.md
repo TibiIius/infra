@@ -11,22 +11,22 @@ Ansible-based infrastructure-as-code for managing on-premise (TrueNAS + Talos VM
 │                    Hetzner VPS                              │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Terraform (hcloud) → Ubuntu 26.04                      ││
-│  │    ↓ cloud-init → Talos Linux                            ││
+│  │    ↓ cloud-init → Talos Linux                           ││
 │  │  Talos → Full Kubernetes                                ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
-│                    TrueNAS (bare-metal)                      │
+│                    TrueNAS (bare-metal)                     │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Talos VM (wn1, wn2, ...)                               ││
-│  │    ↓ Terraform generates configs + talosctl apply-config ││
+│  │    ↓ Terraform generates configs + talosctl apply-config││
 │  │  Full Kubernetes                                        ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
-│                    GitOps (fleet/ repo)                      │
+│                    GitOps (fleet/ repo)                     │
 │  Rancher Fleet → deploys to both clusters                   │
 └─────────────────────────────────────────────────────────────┘
 ```

@@ -18,7 +18,9 @@ Infrastructure-as-code for managing on-premise (TrueNAS + Talos VMs) and cloud (
 
 ### Terraform
 - Hetzner: `terraform/hetzner/` — hcloud provider for Talos nodes
-- Always use `node_count` (not `control_plane_count`/`worker_count`)
+- Talos: `terraform/talos/` — siderolabs/talos provider for Talos config generation
+- Hetzner: always use `node_count` (not `control_plane_count`/`worker_count`)
+- Talos: use `node_types` map to specify per-node node_type (controlplane/worker), defaults to controlplane
 
 ### Inventory
 - Static: `ansible/inventory` — localhost only
@@ -56,3 +58,10 @@ uv run ansible-lint
 - `ansible/playbooks/truenas/setup_host.yaml` — TrueNAS health check
 - `terraform/hetzner/main.tf` — Hetzner Talos provisioning
 - `terraform/hetzner/variables.tf` — node_count, server_type, etc.
+- `terraform/talos/main.tf` — Talos config generation
+- `terraform/talos/variables.tf` — cluster_name, node_ips, node_types, etc.
+
+## Double-checking Claims
+
+Use exa MCP (or websearch if you don't have access to exa) to verify any claims
+made during an agent session.

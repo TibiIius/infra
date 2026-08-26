@@ -10,6 +10,7 @@
 #
 # Requires: talos_node_ips (list), talos_cluster_name, talos_tf_dir,
 #           talos_kubeconfig_path (defaults to <talos_tf_dir>/generated/kubeconfig).
+# Optional: talos_node_types (map of IP -> node_type for multi-node support)
 - name: Wait for the Talos API (port {{ talos_api_port }}) to be ready on each node
   ansible.builtin.wait_for:
     host: "{{ item }}"
@@ -25,6 +26,7 @@
     variables:
       cluster_name: "{{ talos_cluster_name }}"
       node_ips: "{{ talos_node_ips }}"
+      node_types: "{{ talos_node_types | default({}) }}"
       install_disk: "{{ talos_install_disk }}"
       cluster_endpoint: "{{ talos_cluster_endpoint }}"
       client_sans: "{{ talos_client_sans }}"
